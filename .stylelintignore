@@ -1,0 +1,5 @@
+build
+vendor
+
+# Third-party vendor asset (PrismJS 1.29.0) — do not lint/format generated code
+resources/assets/css/prism.css

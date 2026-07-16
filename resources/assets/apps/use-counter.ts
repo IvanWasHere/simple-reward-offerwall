@@ -9,16 +9,16 @@ export interface CounterApi {
   increment: () => void;
   decrement: () => void;
   reset: () => void;
-  set: (value: number) => void;
+  set: ( value: number ) => void;
 }
 
-export function useCounter(initial: number = 0): CounterApi {
-  const [count, setCount] = useState(initial);
+export function useCounter( initial: number = 0 ): CounterApi {
+  const [ count, setCount ] = useState( initial );
 
-  const increment = useCallback(() => setCount((c) => c + 1), []);
-  const decrement = useCallback(() => setCount((c) => c - 1), []);
-  const reset = useCallback(() => setCount(initial), [initial]);
-  const set = useCallback((value: number) => setCount(value), []);
+  const increment = useCallback( () => setCount( ( c ) => c + 1 ), [] );
+  const decrement = useCallback( () => setCount( ( c ) => c - 1 ), [] );
+  const reset = useCallback( () => setCount( initial ), [ initial ] );
+  const set = useCallback( ( value: number ) => setCount( value ), [] );
 
   return { count, increment, decrement, reset, set };
 }
