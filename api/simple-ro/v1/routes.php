@@ -25,6 +25,7 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
+use SimpleRO\API\Auth\Guard;
 use SimpleRO\WPBones\Routing\API\Route;
 
 /*
@@ -42,3 +43,19 @@ Route::get('/health', function () {
     'api'     => 'simple-ro/v1',
   ]);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Auth (public — the endpoints that bootstrap a session)
+|--------------------------------------------------------------------------
+| /auth/me self-reports auth state (200 with user, or 401). /auth/session
+| (logout) requires an authenticated session + CSRF header, enforced by Guard.
+*/
+Route::post('/auth/register', 'SimpleRO\API\AuthController@register');
+Route::post('/auth/login', 'SimpleRO\API\AuthController@login');
+Route::post('/auth/forgot', 'SimpleRO\API\AuthController@forgot');
+Route::post('/auth/reset', 'SimpleRO\API\AuthController@reset');
+Route::get('/auth/me', 'SimpleRO\API\AuthController@me');
+Route::delete('/auth/session', 'SimpleRO\API\AuthController@logout', [
+  'permission_callback' => Guard::authenticated(),
+]);

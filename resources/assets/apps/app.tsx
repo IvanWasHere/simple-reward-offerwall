@@ -70,7 +70,9 @@ const App = () => {
 
       <Card>
         <CardHeader>
-          <h2 style={ { margin: 0 } }>{ __( 'Text input (controlled)', 'simple-reward-offerwall' ) }</h2>
+          <h2 style={ { margin: 0 } }>
+            { __( 'Text input (controlled)', 'simple-reward-offerwall' ) }
+          </h2>
         </CardHeader>
         <CardBody>
           <TextControl

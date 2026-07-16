@@ -150,6 +150,8 @@ return [
   |
   */
 
-  'providers' => []
+  'providers' => [
+    \SimpleRO\Providers\AppShortcodesServiceProvider::class,
+  ]
 
 ];
