@@ -15,8 +15,8 @@
     }
   ],
   "support": {
-    "issues": "https://github.com/wpbones/WPKirk/issues",
-    "source": "https://github.com/wpbones/WPKirk/"
+    "issues": "https://github.com/wpbones/SimpleRO/issues",
+    "source": "https://github.com/wpbones/SimpleRO/"
   },
   "require": {
     "php": ">=7.4",
@@ -25,7 +25,7 @@
   },
   "autoload": {
     "psr-4": {
-      "WPKirk\\": "plugin/"
+      "SimpleRO\\": "plugin/"
     },
     "files": [
       "functions.php"

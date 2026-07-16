@@ -1,5 +1,5 @@
 /**
- * WPKirk ReactJS Boilerplate — demo admin app built with ONLY WordPress libraries.
+ * SimpleRO ReactJS Boilerplate — demo admin app built with ONLY WordPress libraries.
  *
  * No Mantine, no third-party React UI kit. Everything here comes from the core
  * WordPress packages that ship with WordPress: the `element` package for React
@@ -31,7 +31,7 @@ const App = () => {
   // Any plugin can call addFilter('wpkirk.greeting', ...) to override the default.
   const greeting = applyFilters(
     'wpkirk.greeting',
-    __( 'Welcome to the ReactJS boilerplate.', 'wp-kirk' )
+    __( 'Welcome to the ReactJS boilerplate.', 'simple-reward-offerwall' )
   ) as string;
 
   return (
@@ -42,7 +42,7 @@ const App = () => {
 
       <Card>
         <CardHeader>
-          <h2 style={ { margin: 0 } }>{ __( 'Counter', 'wp-kirk' ) }</h2>
+          <h2 style={ { margin: 0 } }>{ __( 'Counter', 'simple-reward-offerwall' ) }</h2>
         </CardHeader>
         <CardBody>
           <Flex align="center" gap={ 3 }>
@@ -50,18 +50,18 @@ const App = () => {
               <p style={ { fontSize: 18, margin: 0 } }>
                 {
                   // translators: %d is the current counter value.
-                  sprintf( __( 'Current value: %d', 'wp-kirk' ), count )
+                  sprintf( __( 'Current value: %d', 'simple-reward-offerwall' ), count )
                 }
               </p>
             </FlexItem>
             <FlexItem>
               <Button variant="primary" onClick={ increment }>
-                { __( 'Increment', 'wp-kirk' ) }
+                { __( 'Increment', 'simple-reward-offerwall' ) }
               </Button>
             </FlexItem>
             <FlexItem>
               <Button variant="secondary" onClick={ reset }>
-                { __( 'Reset', 'wp-kirk' ) }
+                { __( 'Reset', 'simple-reward-offerwall' ) }
               </Button>
             </FlexItem>
           </Flex>
@@ -70,14 +70,14 @@ const App = () => {
 
       <Card>
         <CardHeader>
-          <h2 style={ { margin: 0 } }>{ __( 'Text input (controlled)', 'wp-kirk' ) }</h2>
+          <h2 style={ { margin: 0 } }>{ __( 'Text input (controlled)', 'simple-reward-offerwall' ) }</h2>
         </CardHeader>
         <CardBody>
           <TextControl
-            label={ __( 'Your name', 'wp-kirk' ) }
+            label={ __( 'Your name', 'simple-reward-offerwall' ) }
             value={ name }
             onChange={ ( value ) => setName( value ) }
-            placeholder={ __( 'Type here…', 'wp-kirk' ) }
+            placeholder={ __( 'Type here…', 'simple-reward-offerwall' ) }
             __nextHasNoMarginBottom
             __next40pxDefaultSize
           />
@@ -85,7 +85,7 @@ const App = () => {
             <p style={ { marginTop: 12 } }>
               {
                 // translators: %s is the name entered by the user.
-                sprintf( __( 'Hello, %s!', 'wp-kirk' ), name )
+                sprintf( __( 'Hello, %s!', 'simple-reward-offerwall' ), name )
               }
             </p>
           ) }

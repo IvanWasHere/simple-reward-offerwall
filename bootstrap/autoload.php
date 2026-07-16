@@ -27,24 +27,24 @@ require_once __DIR__ . '/../vendor/autoload.php';
 |
 */
 
-final class WPKirk
+final class SimpleRO
 {
-    public const TEXTDOMAIN = 'wp-kirk';
+    public const TEXTDOMAIN = 'simple-reward-offerwall';
     public static $plugin;
     public static $start;
 }
 
-WPKirk::$plugin = require_once __DIR__ . '/plugin.php';
-WPKirk::$start = microtime(true);
+SimpleRO::$plugin = require_once __DIR__ . '/plugin.php';
+SimpleRO::$start = microtime(true);
 
 // Commodity function to get the plugin instance
-if (!function_exists('WPKirk')) {
+if (!function_exists('SimpleRO')) {
     /**
      * Return the instance of plugin.
      *
      */
-    function WPKirk()
+    function SimpleRO()
     {
-        return WPKirk::$plugin;
+        return SimpleRO::$plugin;
     }
 }

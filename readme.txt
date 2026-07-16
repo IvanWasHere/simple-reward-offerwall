@@ -1,4 +1,4 @@
-=== WP Kirk ReactJS Boilerplate ===
+=== Simple Reward Offerwall ReactJS Boilerplate ===
 Contributors: gfazioli
 Donate link: https://wpbones.com/
 Tags: template, wpbones

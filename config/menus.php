@@ -15,15 +15,15 @@ if (!defined('ABSPATH')) {
 */
 
 return [
-  'wp_kirk_slug_menu' => [
+  'simple_reward_offerwall_slug_menu' => [
     "page_title" => "ReactJS",
     "menu_title" => "ReactJS",
     'capability' => 'read',
     'icon' => 'wpbones-logo-menu.png',
     'items' => [
       [
-        "page_title" => __('Main View', 'wp-kirk'),
-        "menu_title" => __('Main View', 'wp-kirk'),
+        "page_title" => __('Main View', 'simple-reward-offerwall'),
+        "menu_title" => __('Main View', 'simple-reward-offerwall'),
         'capability' => 'read',
         'route' => [
           'get' => 'Dashboard\DashboardController@index'

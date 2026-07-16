@@ -1,17 +1,16 @@
 <?php
 
 /**
- * Plugin Name: WP Kirk ReactJS Boilerplate
- * Plugin URI: https://github.com/wpbones/WPKirk-ReactJS-Boilerplate
- * Description: WP Bones template WordPress plugin
- * Version: 2.0.0
+ * Plugin Name: Simple Reward Offerwall
+ * Plugin URI: https://github.com/
+ * Description: Reward offerwall — providers, offers, coin rewards, and gift-card payouts with custom user/admin/support dashboards.
+ * Version: 0.1.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
- * Author: Giovambattista Fazioli
- * Author URI: https://wpbones.com/
+ * Author: Ivan Marinkovic
  * License: GPLv2 or later
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: wp-kirk
+ * Text Domain: simple-reward-offerwall
  * Domain Path: languages
  *
  */

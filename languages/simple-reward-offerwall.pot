@@ -3,7 +3,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: WP Kirk ReactJS Boilerplate 1.7.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-kirk\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/simple-reward-offerwall\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -12,30 +12,30 @@ msgstr ""
 "POT-Creation-Date: 2024-11-12T16:49:02+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
-"X-Domain: wp-kirk\n"
+"X-Domain: simple-reward-offerwall\n"
 
 #. Plugin Name of the plugin
-#: wp-kirk.php
+#: simple-reward-offerwall.php
 msgid "WP Kirk ReactJS Boilerplate"
 msgstr ""
 
 #. Plugin URI of the plugin
-#: wp-kirk.php
-msgid "https://github.com/wpbones/WPKirk-ReactJS-Boilerplate"
+#: simple-reward-offerwall.php
+msgid "https://github.com/wpbones/SimpleRO-ReactJS-Boilerplate"
 msgstr ""
 
 #. Description of the plugin
-#: wp-kirk.php
+#: simple-reward-offerwall.php
 msgid "WP Bones template WordPress plugin"
 msgstr ""
 
 #. Author of the plugin
-#: wp-kirk.php
+#: simple-reward-offerwall.php
 msgid "Giovambattista Fazioli"
 msgstr ""
 
 #. Author URI of the plugin
-#: wp-kirk.php
+#: simple-reward-offerwall.php
 msgid "https://wpbones.com/"
 msgstr ""
 

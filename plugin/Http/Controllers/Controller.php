@@ -1,8 +1,8 @@
 <?php
 
-namespace WPKirk\Http\Controllers;
+namespace SimpleRO\Http\Controllers;
 
-use WPKirk\WPBones\Routing\Controller as BaseController;
+use SimpleRO\WPBones\Routing\Controller as BaseController;
 
 if (!defined('ABSPATH')) {
     exit();

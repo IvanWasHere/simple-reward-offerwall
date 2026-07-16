@@ -1,6 +1,6 @@
 <?php
 
-use WPKirk\WPBones\Foundation\Plugin;
+use SimpleRO\WPBones\Foundation\Plugin;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
 | which serves as the "glue" for all the components.
 |
 */
-if (class_exists('\WPKirk\WPBones\Foundation\Plugin')) {
+if (class_exists('\SimpleRO\WPBones\Foundation\Plugin')) {
     $plugin = new Plugin(
         realpath(__DIR__ . '/../')
     );
@@ -34,7 +34,7 @@ if (class_exists('\WPKirk\WPBones\Foundation\Plugin')) {
     /**
      * Fire when the plugin is loaded
      */
-    do_action('wp-kirk_loaded');
+    do_action('simple-reward-offerwall_loaded');
 
     return $plugin;
 }

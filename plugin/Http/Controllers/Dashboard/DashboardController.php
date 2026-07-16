@@ -1,8 +1,8 @@
 <?php
 
-namespace WPKirk\Http\Controllers\Dashboard;
+namespace SimpleRO\Http\Controllers\Dashboard;
 
-use WPKirk\Http\Controllers\Controller;
+use SimpleRO\Http\Controllers\Controller;
 
 if (!defined('ABSPATH')) {
   exit();
@@ -12,11 +12,11 @@ class DashboardController extends Controller
 {
   public function index()
   {
-    return WPKirk()
+    return SimpleRO()
       ->view('dashboard.index')
       ->withAdminStyle('prism')
       ->withAdminScript('prism')
-      ->withAdminStyle('wp-kirk-common')
+      ->withAdminStyle('simple-reward-offerwall-common')
       ->withAdminAppsScript('app');
   }
 }
