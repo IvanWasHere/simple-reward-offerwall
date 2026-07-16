@@ -31,11 +31,13 @@ return new class extends Migration {
         link text NULL,
         raw_json longtext NULL,
         active tinyint(1) NOT NULL default 1,
+        admin_disabled tinyint(1) NOT NULL default 0,
         created_at datetime NULL default NULL,
         updated_at datetime NULL default NULL,
         PRIMARY KEY  (id),
         UNIQUE KEY provider_offer (provider_id, provider_offer_id),
-        KEY active (active)
+        KEY active (active),
+        KEY admin_disabled (admin_disabled)
       ) ENGINE=InnoDB {$this->charsetCollate};"
     );
   }

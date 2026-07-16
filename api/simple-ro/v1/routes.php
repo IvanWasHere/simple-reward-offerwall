@@ -87,6 +87,26 @@ Route::get('/me/redemptions', 'SimpleRO\API\User\RedemptionsController@mine', $u
 
 /*
 |--------------------------------------------------------------------------
+| Support tickets
+|--------------------------------------------------------------------------
+| User: manage own tickets. Shared (owner or staff): view + post message.
+| Staff (support, admin superset): queue, assign, status, user context.
+*/
+$authed = ['permission_callback' => Guard::authenticated()];
+$support = ['permission_callback' => Guard::role('support')];
+
+Route::get('/support/tickets', 'SimpleRO\API\SupportController@myTickets', $user);
+Route::post('/support/tickets', 'SimpleRO\API\SupportController@create', $user);
+Route::get('/support/tickets/(?P<id>\d+)', 'SimpleRO\API\SupportController@show', $authed);
+Route::post('/support/tickets/(?P<id>\d+)/messages', 'SimpleRO\API\SupportController@postMessage', $authed);
+
+Route::get('/support/queue', 'SimpleRO\API\SupportController@queue', $support);
+Route::post('/support/tickets/(?P<id>\d+)/assign', 'SimpleRO\API\SupportController@assign', $support);
+Route::put('/support/tickets/(?P<id>\d+)', 'SimpleRO\API\SupportController@setStatus', $support);
+Route::get('/support/users/(?P<id>\d+)', 'SimpleRO\API\SupportController@userContext', $support);
+
+/*
+|--------------------------------------------------------------------------
 | Admin (role: admin)
 |--------------------------------------------------------------------------
 */
@@ -102,6 +122,10 @@ Route::get('/admin/providers/(?P<id>\d+)/callbacks', 'SimpleRO\API\Admin\Provide
 Route::post('/admin/providers/(?P<id>\d+)/callbacks', 'SimpleRO\API\Admin\ProviderCallbacksController@store', $admin);
 Route::put('/admin/providers/(?P<id>\d+)/callbacks/(?P<cbId>\d+)', 'SimpleRO\API\Admin\ProviderCallbacksController@update', $admin);
 Route::delete('/admin/providers/(?P<id>\d+)/callbacks/(?P<cbId>\d+)', 'SimpleRO\API\Admin\ProviderCallbacksController@destroy', $admin);
+
+Route::post('/admin/providers/(?P<id>\d+)/ingest', 'SimpleRO\API\Admin\ProvidersController@ingest', $admin);
+Route::get('/admin/offers', 'SimpleRO\API\Admin\OffersController@index', $admin);
+Route::put('/admin/offers/(?P<id>\d+)', 'SimpleRO\API\Admin\OffersController@update', $admin);
 
 Route::get('/admin/rewards', 'SimpleRO\API\Admin\RewardsController@index', $admin);
 Route::post('/admin/rewards/(?P<id>\d+)/approve', 'SimpleRO\API\Admin\RewardsController@approve', $admin);

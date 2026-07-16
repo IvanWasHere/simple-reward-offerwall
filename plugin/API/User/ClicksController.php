@@ -71,7 +71,7 @@ class ClicksController extends RestController
     if ($provider->type === 'static_api') {
       $row = $wpdb->get_row($wpdb->prepare(
         "SELECT id, link FROM {$wpdb->prefix}ro_offers
-          WHERE provider_id = %d AND provider_offer_id = %s AND active = 1 LIMIT 1",
+          WHERE provider_id = %d AND provider_offer_id = %s AND active = 1 AND admin_disabled = 0 LIMIT 1",
         (int) $provider->id,
         $providerOfferId
       ));

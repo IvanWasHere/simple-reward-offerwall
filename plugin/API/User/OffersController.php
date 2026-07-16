@@ -37,7 +37,7 @@ class OffersController extends RestController
       "SELECT o.*, p.name AS provider_name
          FROM {$o} o
          INNER JOIN {$p} p ON p.id = o.provider_id
-        WHERE o.active = 1 AND p.status = 'active'
+        WHERE o.active = 1 AND o.admin_disabled = 0 AND p.status = 'active'
         ORDER BY o.total_payout DESC
         LIMIT 200"
     );

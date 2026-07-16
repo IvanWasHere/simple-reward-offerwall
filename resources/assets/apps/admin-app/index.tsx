@@ -149,6 +149,9 @@ const AdminHome = ( { me }: { me: Me } ) => {
         <RedemptionsQueue />
       </div>
       <div style={ { marginTop: 24 } }>
+        <OffersManager />
+      </div>
+      <div style={ { marginTop: 24 } }>
         <PayoutsManager />
       </div>
     </div>
@@ -170,6 +173,8 @@ const Providers = () => {
   const [ providers, setProviders ] = useState< Provider[] >( [] );
   const [ selected, setSelected ] = useState< number | null >( null );
 
+  const [ note, setNote ] = useState< string | null >( null );
+
   const reload = () =>
     api< { providers: Provider[] } >( '/admin/providers' )
       .then( ( r ) => setProviders( r.providers || [] ) )
@@ -179,12 +184,30 @@ const Providers = () => {
     reload();
   }, [] );
 
+  const ingest = async ( id: number, name: string ) => {
+    setNote( null );
+    try {
+      const r = await api< { ingested: number } >( `/admin/providers/${ id }/ingest`, {
+        method: 'POST',
+      } );
+      setNote( `${ name }: ${ r.ingested } offers ingested.` );
+      reload();
+    } catch ( e ) {
+      setNote( e instanceof ApiError ? e.message : 'Ingest failed.' );
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <h2 style={ { margin: 0 } }>{ __( 'Providers', 'simple-reward-offerwall' ) }</h2>
       </CardHeader>
       <CardBody>
+        { note && (
+          <Notice status="info" isDismissible onRemove={ () => setNote( null ) }>
+            { note }
+          </Notice>
+        ) }
         <table style={ { width: '100%', borderCollapse: 'collapse', marginBottom: 16 } }>
           <thead>
             <tr style={ { textAlign: 'left', borderBottom: '1px solid #ddd' } }>
@@ -203,14 +226,21 @@ const Providers = () => {
                 <td>{ p.coinRate }</td>
                 <td>{ p.callbackCount ?? 0 }</td>
                 <td style={ { textAlign: 'right' } }>
-                  <Button
-                    variant="link"
-                    onClick={ () => setSelected( selected === p.id ? null : p.id ) }
-                  >
-                    { selected === p.id
-                      ? __( 'Hide callbacks', 'simple-reward-offerwall' )
-                      : __( 'Callbacks', 'simple-reward-offerwall' ) }
-                  </Button>
+                  <Flex justify="flex-end" gap={ 1 }>
+                    { p.type === 'static_api' && (
+                      <Button variant="secondary" onClick={ () => ingest( p.id, p.name ) }>
+                        { __( 'Ingest now', 'simple-reward-offerwall' ) }
+                      </Button>
+                    ) }
+                    <Button
+                      variant="link"
+                      onClick={ () => setSelected( selected === p.id ? null : p.id ) }
+                    >
+                      { selected === p.id
+                        ? __( 'Hide callbacks', 'simple-reward-offerwall' )
+                        : __( 'Callbacks', 'simple-reward-offerwall' ) }
+                    </Button>
+                  </Flex>
                 </td>
               </tr>
             ) ) }
@@ -795,6 +825,90 @@ const PayoutForm = ( { onCreated }: { onCreated: () => void } ) => {
         </div>
       </div>
     </details>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+
+interface OfferRow {
+  id: number;
+  providerName: string;
+  providerOfferId: string;
+  name: string;
+  totalPayout: number;
+  available: boolean;
+  enabled: boolean;
+}
+
+const OffersManager = () => {
+  const [ offers, setOffers ] = useState< OfferRow[] >( [] );
+
+  const reload = () =>
+    api< { offers: OfferRow[] } >( '/admin/offers' )
+      .then( ( r ) => setOffers( r.offers || [] ) )
+      .catch( () => setOffers( [] ) );
+
+  useEffect( () => {
+    reload();
+  }, [] );
+
+  const toggle = async ( o: OfferRow ) => {
+    await api( `/admin/offers/${ o.id }`, { method: 'PUT', body: { enabled: ! o.enabled } } );
+    reload();
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <h2 style={ { margin: 0 } }>{ __( 'Ingested offers', 'simple-reward-offerwall' ) }</h2>
+      </CardHeader>
+      <CardBody>
+        { offers.length === 0 ? (
+          <p>
+            { __(
+              'No offers ingested yet. Use “Ingest now” on a static_api provider.',
+              'simple-reward-offerwall'
+            ) }
+          </p>
+        ) : (
+          <table style={ { width: '100%', borderCollapse: 'collapse' } }>
+            <thead>
+              <tr style={ { textAlign: 'left', borderBottom: '1px solid #ddd' } }>
+                <th>{ __( 'Offer', 'simple-reward-offerwall' ) }</th>
+                <th>{ __( 'Provider', 'simple-reward-offerwall' ) }</th>
+                <th>{ __( 'Payout', 'simple-reward-offerwall' ) }</th>
+                <th>{ __( 'Available', 'simple-reward-offerwall' ) }</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              { offers.map( ( o ) => (
+                <tr
+                  key={ o.id }
+                  style={ { borderBottom: '1px solid #f0f0f0', opacity: o.enabled ? 1 : 0.5 } }
+                >
+                  <td>{ o.name }</td>
+                  <td>{ o.providerName }</td>
+                  <td>{ o.totalPayout }</td>
+                  <td>
+                    { o.available
+                      ? __( 'yes', 'simple-reward-offerwall' )
+                      : __( 'no', 'simple-reward-offerwall' ) }
+                  </td>
+                  <td style={ { textAlign: 'right' } }>
+                    <Button variant="link" onClick={ () => toggle( o ) }>
+                      { o.enabled
+                        ? __( 'Disable', 'simple-reward-offerwall' )
+                        : __( 'Enable', 'simple-reward-offerwall' ) }
+                    </Button>
+                  </td>
+                </tr>
+              ) ) }
+            </tbody>
+          </table>
+        ) }
+      </CardBody>
+    </Card>
   );
 };
 

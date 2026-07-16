@@ -16,6 +16,7 @@ import {
   Notice,
   Spinner,
   TextControl,
+  TextareaControl,
 } from '@wordpress/components';
 import { createRoot, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
@@ -430,6 +431,10 @@ const Dashboard = ( { user, onLogout }: { user: User; onLogout: () => void } ) =
       <div style={ { marginTop: 24 } }>
         <Rewards />
       </div>
+
+      <div style={ { marginTop: 24 } }>
+        <Support />
+      </div>
     </div>
   );
 };
@@ -779,6 +784,223 @@ const MyRedemptions = ( { tick }: { tick: number } ) => {
         </table>
       </CardBody>
     </Card>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+
+interface TicketSummary {
+  id: number;
+  subject: string;
+  status: string;
+}
+
+interface TicketMessage {
+  id: number;
+  authorType: string;
+  body: string;
+}
+
+interface TicketDetail {
+  id: number;
+  subject: string;
+  status: string;
+  messages: TicketMessage[];
+}
+
+const Support = () => {
+  const [ tickets, setTickets ] = useState< TicketSummary[] >( [] );
+  const [ openId, setOpenId ] = useState< number | null >( null );
+  const [ creating, setCreating ] = useState( false );
+
+  const reload = () =>
+    api< { tickets: TicketSummary[] } >( '/support/tickets' )
+      .then( ( r ) => setTickets( r.tickets || [] ) )
+      .catch( () => setTickets( [] ) );
+
+  useEffect( () => {
+    reload();
+  }, [] );
+
+  return (
+    <Card>
+      <CardHeader>
+        <Flex justify="space-between">
+          <h3 style={ { margin: 0 } }>{ __( 'Support', 'simple-reward-offerwall' ) }</h3>
+          <Button variant="secondary" onClick={ () => setCreating( ! creating ) }>
+            { creating
+              ? __( 'Cancel', 'simple-reward-offerwall' )
+              : __( 'New ticket', 'simple-reward-offerwall' ) }
+          </Button>
+        </Flex>
+      </CardHeader>
+      <CardBody>
+        { creating && (
+          <NewTicket
+            onCreated={ ( id ) => {
+              setCreating( false );
+              reload();
+              setOpenId( id );
+            } }
+          />
+        ) }
+
+        { tickets.length === 0 && ! creating && (
+          <p>{ __( 'No tickets yet.', 'simple-reward-offerwall' ) }</p>
+        ) }
+
+        { tickets.map( ( t ) => (
+          <div key={ t.id } style={ { borderBottom: '1px solid #f0f0f0', padding: '8px 0' } }>
+            <Flex justify="space-between">
+              <span>
+                <strong>{ t.subject }</strong> <em style={ { opacity: 0.6 } }>({ t.status })</em>
+              </span>
+              <Button variant="link" onClick={ () => setOpenId( openId === t.id ? null : t.id ) }>
+                { openId === t.id
+                  ? __( 'Hide', 'simple-reward-offerwall' )
+                  : __( 'View', 'simple-reward-offerwall' ) }
+              </Button>
+            </Flex>
+            { openId === t.id && <Thread ticketId={ t.id } onReplied={ reload } /> }
+          </div>
+        ) ) }
+      </CardBody>
+    </Card>
+  );
+};
+
+const NewTicket = ( { onCreated }: { onCreated: ( id: number ) => void } ) => {
+  const [ subject, setSubject ] = useState( '' );
+  const [ message, setMessage ] = useState( '' );
+  const [ error, setError ] = useState< string | null >( null );
+  const [ busy, setBusy ] = useState( false );
+
+  const submit = async () => {
+    setError( null );
+    setBusy( true );
+    try {
+      const r = await api< { ticket: { id: number } } >( '/support/tickets', {
+        method: 'POST',
+        body: { subject, message },
+      } );
+      onCreated( r.ticket.id );
+    } catch ( e ) {
+      setError(
+        e instanceof ApiError
+          ? e.message
+          : __( 'Could not create ticket.', 'simple-reward-offerwall' )
+      );
+    } finally {
+      setBusy( false );
+    }
+  };
+
+  return (
+    <div style={ { marginBottom: 16 } }>
+      <ErrorNotice message={ error } />
+      <TextControl
+        label={ __( 'Subject', 'simple-reward-offerwall' ) }
+        value={ subject }
+        onChange={ setSubject }
+        __nextHasNoMarginBottom
+        __next40pxDefaultSize
+      />
+      <TextareaControl
+        label={ __( 'Message', 'simple-reward-offerwall' ) }
+        value={ message }
+        onChange={ setMessage }
+        rows={ 3 }
+        __nextHasNoMarginBottom
+      />
+      <div style={ { marginTop: 8 } }>
+        <Button variant="primary" onClick={ submit } isBusy={ busy } disabled={ busy }>
+          { __( 'Create ticket', 'simple-reward-offerwall' ) }
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const Thread = ( { ticketId, onReplied }: { ticketId: number; onReplied: () => void } ) => {
+  const [ ticket, setTicket ] = useState< TicketDetail | null >( null );
+  const [ reply, setReply ] = useState( '' );
+  const [ busy, setBusy ] = useState( false );
+
+  const load = () =>
+    api< { ticket: TicketDetail } >( `/support/tickets/${ ticketId }` )
+      .then( ( r ) => setTicket( r.ticket ) )
+      .catch( () => setTicket( null ) );
+
+  useEffect( () => {
+    load();
+  }, [ ticketId ] );
+
+  const send = async () => {
+    if ( ! reply.trim() ) {
+      return;
+    }
+    setBusy( true );
+    try {
+      await api( `/support/tickets/${ ticketId }/messages`, {
+        method: 'POST',
+        body: { message: reply },
+      } );
+      setReply( '' );
+      await load();
+      onReplied();
+    } finally {
+      setBusy( false );
+    }
+  };
+
+  if ( ! ticket ) {
+    return null;
+  }
+
+  return (
+    <div style={ { margin: '8px 0 12px', paddingLeft: 12, borderLeft: '3px solid #e0e0e0' } }>
+      <div style={ { display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 } }>
+        { ticket.messages.map( ( m ) => {
+          const staff = m.authorType !== 'user';
+          return (
+            <div
+              key={ m.id }
+              style={ {
+                alignSelf: staff ? 'flex-start' : 'flex-end',
+                maxWidth: '80%',
+                background: staff ? '#e7f0ff' : '#f2f2f2',
+                borderRadius: 8,
+                padding: '6px 10px',
+                fontSize: 14,
+              } }
+            >
+              <div style={ { fontSize: 11, opacity: 0.6 } }>
+                { staff
+                  ? __( 'Support', 'simple-reward-offerwall' )
+                  : __( 'You', 'simple-reward-offerwall' ) }
+              </div>
+              { m.body }
+            </div>
+          );
+        } ) }
+      </div>
+      { ticket.status !== 'closed' && (
+        <Flex justify="flex-start" gap={ 2 } align="flex-end">
+          <div style={ { flex: 1 } }>
+            <TextControl
+              value={ reply }
+              onChange={ setReply }
+              placeholder={ __( 'Write a reply…', 'simple-reward-offerwall' ) }
+              __nextHasNoMarginBottom
+              __next40pxDefaultSize
+            />
+          </div>
+          <Button variant="primary" onClick={ send } isBusy={ busy } disabled={ busy }>
+            { __( 'Reply', 'simple-reward-offerwall' ) }
+          </Button>
+        </Flex>
+      ) }
+    </div>
   );
 };
 

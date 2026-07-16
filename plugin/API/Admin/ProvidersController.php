@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
+use SimpleRO\Services\OfferIngestionService;
 use SimpleRO\WPBones\Routing\API\RestController;
 
 /**
@@ -15,6 +16,35 @@ use SimpleRO\WPBones\Routing\API\RestController;
 class ProvidersController extends RestController
 {
   private const TYPES = ['iframe', 'offerwall_api', 'static_api'];
+
+  /**
+   * POST /admin/providers/{id}/ingest — manually pull offers for a static_api
+   * provider now (same path the hourly schedule uses).
+   */
+  public function ingest()
+  {
+    global $wpdb;
+    $id = (int) $this->request->get_param('id');
+
+    $provider = $wpdb->get_row($wpdb->prepare(
+      "SELECT * FROM {$wpdb->prefix}ro_providers WHERE id = %d LIMIT 1",
+      $id
+    ));
+    if (!$provider) {
+      return $this->responseError('ro_not_found', __('Provider not found.', 'simple-reward-offerwall'), 404);
+    }
+    if ($provider->type !== 'static_api') {
+      return $this->responseError('ro_unsupported', __('Only static_api providers ingest offers.', 'simple-reward-offerwall'), 400);
+    }
+
+    $count = OfferIngestionService::safeIngest($provider);
+
+    if ($count < 0) {
+      return $this->responseError('ro_ingest_failed', __('Ingestion failed — check the provider configuration.', 'simple-reward-offerwall'), 502);
+    }
+
+    return $this->response(['ingested' => $count]);
+  }
 
   public function index()
   {
