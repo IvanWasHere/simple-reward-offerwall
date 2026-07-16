@@ -153,6 +153,12 @@ class AuthController extends RestController
       return $generic;
     }
 
+    // Throttle by IP so a valid email can't be used to flood a victim's inbox or
+    // grow the resets table. The response stays uniform regardless.
+    if ($this->forgotThrottled($this->ip())) {
+      return $generic;
+    }
+
     $users = $wpdb->prefix . 'ro_users';
     $user = $wpdb->get_row($wpdb->prepare("SELECT id, status FROM {$users} WHERE email = %s LIMIT 1", $email));
     if (!$user || $user->status === 'blocked') {
@@ -279,6 +285,18 @@ class AuthController extends RestController
     ));
 
     return $count >= $max;
+  }
+
+  /** Allow a bounded number of forgot-password requests per IP per window. */
+  private function forgotThrottled(string $ip): bool
+  {
+    $key = 'sro_forgot_' . md5($ip);
+    $count = (int) get_transient($key);
+    if ($count >= 5) {
+      return true;
+    }
+    set_transient($key, $count + 1, (int) SimpleRO()->config('custom.auth.login_window_minutes', 15) * MINUTE_IN_SECONDS);
+    return false;
   }
 
   private function recordAttempt(string $email, string $ip, bool $success): void

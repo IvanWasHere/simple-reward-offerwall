@@ -14,21 +14,8 @@ if (!defined('ABSPATH')) {
 |
 */
 
-return [
-  'simple_reward_offerwall_slug_menu' => [
-    "page_title" => "ReactJS",
-    "menu_title" => "ReactJS",
-    'capability' => 'read',
-    'icon' => 'wpbones-logo-menu.png',
-    'items' => [
-      [
-        "page_title" => __('Main View', 'simple-reward-offerwall'),
-        "menu_title" => __('Main View', 'simple-reward-offerwall'),
-        'capability' => 'read',
-        'route' => [
-          'get' => 'Dashboard\DashboardController@index'
-        ],
-      ],
-    ]
-  ]
-];
+/*
+ * This plugin's UI lives entirely on the front-end (three React SPAs mounted via
+ * shortcodes — see AppShortcodesServiceProvider), so there is no wp-admin menu.
+ */
+return [];

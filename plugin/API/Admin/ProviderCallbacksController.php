@@ -108,13 +108,27 @@ class ProviderCallbacksController extends RestController
     $active = $this->request->get_param('active');
     $active = ($active === null) ? 1 : (int) (bool) $active;
 
+    $secret = (string) $this->request->get_param('secret');
+
+    // A signed algorithm with an empty secret makes the HMAC forgeable by anyone
+    // holding the callback URL — refuse it.
+    if ($algo !== 'none' && strlen($secret) < 8) {
+      return $this->responseError('ro_weak_secret', __('A signing secret of at least 8 characters is required.', 'simple-reward-offerwall'), 422);
+    }
+
+    // 'none' disables verification entirely; only allow it on an inactive callback
+    // (i.e. for testing), never on a live one.
+    if ($algo === 'none' && $active === 1) {
+      return $this->responseError('ro_unsafe_algo', __('Signature "none" is only allowed on an inactive callback.', 'simple-reward-offerwall'), 422);
+    }
+
     return [
       'name'             => $name,
       'param_map'        => wp_json_encode($this->asObject($this->request->get_param('param_map'))),
       'signature_param'  => sanitize_text_field((string) $this->request->get_param('signature_param')),
       'signature_algo'   => $algo,
       'signature_source' => sanitize_text_field((string) ($this->request->get_param('signature_source') ?: 'ordered_params')),
-      'secret'           => (string) $this->request->get_param('secret'),
+      'secret'           => $secret,
       'ip_allowlist'     => sanitize_text_field((string) $this->request->get_param('ip_allowlist')),
       'active'           => $active,
     ];

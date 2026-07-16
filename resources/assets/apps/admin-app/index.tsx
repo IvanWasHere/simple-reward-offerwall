@@ -141,7 +141,10 @@ const AdminHome = ( { me }: { me: Me } ) => {
         </Flex>
       </Flex>
 
-      <Providers />
+      <Stats />
+      <div style={ { marginTop: 24 } }>
+        <Providers />
+      </div>
       <div style={ { marginTop: 24 } }>
         <RewardsQueue />
       </div>
@@ -153,6 +156,12 @@ const AdminHome = ( { me }: { me: Me } ) => {
       </div>
       <div style={ { marginTop: 24 } }>
         <PayoutsManager />
+      </div>
+      <div style={ { marginTop: 24 } }>
+        <Users />
+      </div>
+      <div style={ { marginTop: 24 } }>
+        <CallbacksAudit />
       </div>
     </div>
   );
@@ -902,6 +911,210 @@ const OffersManager = () => {
                         : __( 'Enable', 'simple-reward-offerwall' ) }
                     </Button>
                   </td>
+                </tr>
+              ) ) }
+            </tbody>
+          </table>
+        ) }
+      </CardBody>
+    </Card>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+
+const Stats = () => {
+  const [ stats, setStats ] = useState< Record< string, Record< string, number > > | null >( null );
+
+  useEffect( () => {
+    api< { stats: Record< string, Record< string, number > > } >( '/admin/stats' )
+      .then( ( r ) => setStats( r.stats ) )
+      .catch( () => setStats( null ) );
+  }, [] );
+
+  if ( ! stats ) {
+    return null;
+  }
+
+  const tile = ( label: string, value: number | string ) => (
+    <div style={ { border: '1px solid #ddd', borderRadius: 8, padding: 12, minWidth: 120 } }>
+      <div style={ { fontSize: 24, fontWeight: 600 } }>{ value }</div>
+      <div style={ { fontSize: 12, opacity: 0.7 } }>{ label }</div>
+    </div>
+  );
+
+  return (
+    <Flex justify="flex-start" gap={ 3 } wrap style={ { marginBottom: 8 } }>
+      { tile( __( 'Users', 'simple-reward-offerwall' ), stats.users.total ) }
+      { tile( __( 'Blocked', 'simple-reward-offerwall' ), stats.users.blocked ) }
+      { tile( __( 'Active providers', 'simple-reward-offerwall' ), stats.providers.active ) }
+      { tile( __( 'Active offers', 'simple-reward-offerwall' ), stats.offers.active ) }
+      { tile( __( 'Pending rewards', 'simple-reward-offerwall' ), stats.rewards.pending ) }
+      { tile( __( 'Pending redemptions', 'simple-reward-offerwall' ), stats.redemptions.pending ) }
+      { tile( __( 'Coins outstanding', 'simple-reward-offerwall' ), stats.coins.outstanding ) }
+      { tile( __( 'Callbacks 24h', 'simple-reward-offerwall' ), stats.callbacks.last24h ) }
+    </Flex>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+
+interface UserRow {
+  id: number;
+  email: string;
+  type: string;
+  status: string;
+  balance: number;
+}
+
+const Users = () => {
+  const [ users, setUsers ] = useState< UserRow[] >( [] );
+  const [ q, setQ ] = useState( '' );
+
+  const reload = () => {
+    const qs = q ? `?q=${ encodeURIComponent( q ) }` : '';
+    api< { users: UserRow[] } >( `/admin/users${ qs }` )
+      .then( ( r ) => setUsers( r.users || [] ) )
+      .catch( () => setUsers( [] ) );
+  };
+
+  useEffect( () => {
+    reload();
+  }, [] );
+
+  const changeType = async ( u: UserRow, type: string ) => {
+    await api( `/admin/users/${ u.id }`, { method: 'PUT', body: { type } } );
+    reload();
+  };
+
+  const toggleBlock = async ( u: UserRow ) => {
+    await api( `/admin/users/${ u.id }`, {
+      method: 'PUT',
+      body: { status: u.status === 'blocked' ? 'active' : 'blocked' },
+    } );
+    reload();
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <Flex justify="space-between">
+          <h2 style={ { margin: 0 } }>{ __( 'Users', 'simple-reward-offerwall' ) }</h2>
+          <Flex justify="flex-end" gap={ 2 }>
+            <TextControl
+              value={ q }
+              onChange={ setQ }
+              placeholder={ __( 'Search email…', 'simple-reward-offerwall' ) }
+              __nextHasNoMarginBottom
+              __next40pxDefaultSize
+            />
+            <Button variant="secondary" onClick={ reload }>
+              { __( 'Search', 'simple-reward-offerwall' ) }
+            </Button>
+          </Flex>
+        </Flex>
+      </CardHeader>
+      <CardBody>
+        <table style={ { width: '100%', borderCollapse: 'collapse' } }>
+          <thead>
+            <tr style={ { textAlign: 'left', borderBottom: '1px solid #ddd' } }>
+              <th>{ __( 'Email', 'simple-reward-offerwall' ) }</th>
+              <th>{ __( 'Type', 'simple-reward-offerwall' ) }</th>
+              <th>{ __( 'Status', 'simple-reward-offerwall' ) }</th>
+              <th>{ __( 'Balance', 'simple-reward-offerwall' ) }</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            { users.map( ( u ) => (
+              <tr key={ u.id } style={ { borderBottom: '1px solid #f0f0f0' } }>
+                <td>{ u.email }</td>
+                <td style={ { minWidth: 130 } }>
+                  <SelectControl
+                    value={ u.type }
+                    options={ [
+                      { label: 'user', value: 'user' },
+                      { label: 'support', value: 'support' },
+                      { label: 'admin', value: 'admin' },
+                    ] }
+                    onChange={ ( v ) => changeType( u, v ) }
+                    __nextHasNoMarginBottom
+                    __next40pxDefaultSize
+                  />
+                </td>
+                <td>{ u.status }</td>
+                <td>{ u.balance }</td>
+                <td style={ { textAlign: 'right' } }>
+                  <Button
+                    variant="link"
+                    isDestructive={ u.status !== 'blocked' }
+                    onClick={ () => toggleBlock( u ) }
+                  >
+                    { u.status === 'blocked'
+                      ? __( 'Unblock', 'simple-reward-offerwall' )
+                      : __( 'Block', 'simple-reward-offerwall' ) }
+                  </Button>
+                </td>
+              </tr>
+            ) ) }
+          </tbody>
+        </table>
+      </CardBody>
+    </Card>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+
+interface CallbackRow {
+  id: string;
+  provider_name: string | null;
+  user_email: string | null;
+  transaction_id: string;
+  amount: string;
+  status: string;
+  signature_ok: string;
+  created_at: string;
+}
+
+const CallbacksAudit = () => {
+  const [ rows, setRows ] = useState< CallbackRow[] >( [] );
+
+  useEffect( () => {
+    api< { callbacks: CallbackRow[] } >( '/admin/callbacks' )
+      .then( ( r ) => setRows( r.callbacks || [] ) )
+      .catch( () => setRows( [] ) );
+  }, [] );
+
+  return (
+    <Card>
+      <CardHeader>
+        <h2 style={ { margin: 0 } }>{ __( 'Callback audit', 'simple-reward-offerwall' ) }</h2>
+      </CardHeader>
+      <CardBody>
+        { rows.length === 0 ? (
+          <p>{ __( 'No callbacks received yet.', 'simple-reward-offerwall' ) }</p>
+        ) : (
+          <table style={ { width: '100%', borderCollapse: 'collapse' } }>
+            <thead>
+              <tr style={ { textAlign: 'left', borderBottom: '1px solid #ddd' } }>
+                <th>{ __( 'Provider', 'simple-reward-offerwall' ) }</th>
+                <th>{ __( 'User', 'simple-reward-offerwall' ) }</th>
+                <th>{ __( 'Txn', 'simple-reward-offerwall' ) }</th>
+                <th>{ __( 'Amount', 'simple-reward-offerwall' ) }</th>
+                <th>{ __( 'When', 'simple-reward-offerwall' ) }</th>
+              </tr>
+            </thead>
+            <tbody>
+              { rows.map( ( c ) => (
+                <tr key={ c.id } style={ { borderBottom: '1px solid #f0f0f0' } }>
+                  <td>{ c.provider_name || '—' }</td>
+                  <td>{ c.user_email || c.id }</td>
+                  <td>
+                    <code style={ { fontSize: 12 } }>{ c.transaction_id }</code>
+                  </td>
+                  <td>{ c.amount }</td>
+                  <td style={ { fontSize: 12, opacity: 0.7 } }>{ c.created_at }</td>
                 </tr>
               ) ) }
             </tbody>

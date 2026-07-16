@@ -1,70 +1,80 @@
-# WPKirk-ReactJS-Boilerplate
+# Simple Reward Offerwall
 
-React admin app built with **only WordPress runtime libraries** — no Mantine, no third-party UI
-kit. Everything comes from the `@wordpress/*` packages WordPress already ships, so the bundle
-stays small and the look matches native wp-admin.
+A WordPress **reward offerwall** plugin built on the **WPBones** framework. External
+*providers* supply offers; users complete tasks; providers fire server-to-server (S2S)
+callbacks we capture as **coin rewards**; users redeem coins for **payouts** (gift cards).
+Three account types — **user / admin / support** — each with its own **React SPA on the
+public front-end** (WordPress is only the host; wp-admin is not used for the app UI).
 
-## What this demos
+Namespace `SimpleRO` (PSR-4 → `plugin/`). REST API at `/wp-json/simple-ro/v1`.
 
-`resources/assets/apps/app.tsx` renders a small admin page wired through the official WP APIs:
+## Architecture
 
-- **UI** — `@wordpress/components`: `Button`, `Card`, `Flex`, `Notice`, `TextControl`
-- **React runtime** — `@wordpress/element`: `createRoot`, `useState`
-- **Filters / extensibility** — `@wordpress/hooks`: `applyFilters('wpkirk.greeting', ...)`
-- **i18n** — `@wordpress/i18n`: `__`, `sprintf`
-- **Custom hook** — `resources/assets/apps/use-counter.ts` showcases a typed reusable hook
+- **Custom auth, not `wp_users`.** Accounts live in `wp_ro_users`. Sessions are opaque
+  tokens (32 random bytes hex) in an httpOnly+Secure+SameSite=Strict `ro_session` cookie;
+  only `sha256(token)` is stored. A non-httpOnly `ro_csrf` cookie is echoed in the
+  `X-RO-CSRF` header (double-submit CSRF, checked on mutations). See
+  `plugin/API/Auth/Guard.php` + `plugin/API/AuthController.php`.
+- **REST is the backbone.** Routes in `api/simple-ro/v1/routes.php` map to controllers in
+  `plugin/API/**` (`SimpleRO\API\...`). Every non-public route sets an explicit
+  `permission_callback` = `Guard::role('user'|'admin'|'support')` / `Guard::authenticated()`
+  (`admin` is a superset of `support`). Public: `health`, `auth/*`, `callback/{hash}`.
+- **Three SPAs** in `resources/assets/apps/{user,admin,support}-app/index.tsx` (shared
+  client `resources/assets/apps/shared/api.ts`), built by `@wordpress/scripts` to
+  `public/apps/<name>.js`, mounted on front-end pages via shortcodes
+  (`[simple_ro_user_app]` / `_admin_app` / `_support_app`) from
+  `plugin/Providers/AppShortcodesServiceProvider.php`. Pages `/dashboard`,
+  `/offerwall-admin`, `/offerwall-support` are auto-created on activation
+  (`plugin/activation.php`).
+- **Providers are adapters.** `plugin/Providers/Contracts/ProviderAdapter.php` +
+  `Adapters/{Iframe,OfferwallApi,Static}Adapter.php` + `ProviderAdapterFactory`. Types:
+  `iframe` (offerwall in an `<iframe>`, per-user URL via macro substitution —
+  `Services/MacroBuilder.php`), `offerwall_api` (live JSON proxy, 60s transient cache),
+  `static_api` (pulled hourly into `ro_offers` — `Services/OfferIngestionService.php` +
+  `Providers/IngestOffersSchedule.php`, cron hook `simple_ro_ingest_offers`).
+- **Callbacks** (`plugin/API/CallbackController.php`): `GET|POST /callback/{hash}` selects a
+  `ro_provider_callbacks` config, verifies the signature
+  (`Services/SignatureVerifier.php`, HMAC-SHA256 / md5 / none), maps params, and creates a
+  **pending** reward. Idempotent via `UNIQUE(provider_id, transaction_id)`.
+- **Coins = an append-only ledger.** `ro_coin_ledger` is the source of truth; balance =
+  `SUM(delta)` (`Services/LedgerService.php`). Idempotent via
+  `UNIQUE(ref_type, ref_id, reason)`. Rewards and redemptions are **admin-approved**.
+  Redemption `store()` reserves/debits coins inside one InnoDB transaction with a
+  `SELECT ... FOR UPDATE` mutex on the user row (no double-spend).
 
-**Key files to read first:**
+## Framework constraints (important)
 
-| File | What to look at |
-| --- | --- |
-| `resources/assets/apps/app.tsx` | Full demo composition using `@wordpress/components` |
-| `resources/assets/apps/use-counter.ts` | Typed custom hook pattern |
-| `resources/assets/apps/__tests__/use-counter.test.ts` | React Testing Library over the hook |
-| `plugin/Http/Controllers/Dashboard/DashboardController.php` | Enqueues the app via `withAdminAppsScript()` |
+- **The WPBones ORM does NOT escape `where()`/`update()` values.** This code therefore does
+  **not** use the query builder — all DB access is `$wpdb->prepare()` or
+  `$wpdb->insert/update/delete` with format arrays and int-cast keys. Keep it that way.
+- **No transactions helper** — use `$wpdb->query('START TRANSACTION'|'COMMIT'|'ROLLBACK')`;
+  money tables are InnoDB.
+- **Migrations run on activation/update only** (no on-demand migrate). `database/migrations/*`
+  are anonymous classes using `dbDelta` (additive — editing a migration to add a column is
+  the intended pattern here). Bump the version header to force a re-run.
 
-## Smoke test (manual, ~30s)
+## Data model (`wp_ro_*`)
 
-With the plugin active:
+`users`, `sessions`, `password_resets`, `login_attempts`, `providers`, `provider_callbacks`,
+`offers`, `clicked`, `callbacks`, `rewards`, `coin_ledger`, `payouts`, `redemptions`,
+`support_requests`, `support_messages`. Money is integer minor units; coins are integers.
 
-1. Log in to `wp-admin` and open **WP Kirk React → Main View**.
-2. Verify the demo renders: an info Notice, a text input, a counter with increment/reset
-   buttons.
-3. Type into the text input — the label below it should update live (proves `useState`).
-4. Click **Increment** a few times — count goes up; **Reset** returns to 0.
-5. In devtools Console, run:
-   `wp.hooks.addFilter('wpkirk.greeting', 'test', () => 'Hello from filter')`,
-   then reload — the Notice should show the filtered text.
-6. Run `yarn test` locally — hooks tests should pass.
+## Working on this
 
-If any of the above fail: check devtools Console for React errors, `wp-content/debug.log`
-for PHP errors, and `yarn build` output for missing `@wordpress/*` dependencies.
+- **Build**: `npm run build` (or `npm run dev`). **Lint**: `npm run lint` (JS, ~slow, ESLint
+  type-aware) + `npm run lint:style`. **Tests**: `npm test` (jest). Auto-fix JS style with
+  `npx wp-scripts lint-js resources/ --fix` (the WP prettier config is strict).
+- **Activate / migrate**: `wp plugin activate simple-reward-offerwall` (runs migrations).
+- **Staff accounts**: `wp simple-ro make-admin --email= --password= [--type=admin|support]`
+  (`plugin/Providers/CliServiceProvider.php`).
+- **Verify** REST over HTTP with curl; on a local Herd/Valet site the cert is self-signed so
+  use `curl -k`, and query the DB via `wp eval` (the `mysql` CLI may not be on PATH). Trigger
+  the ingest cron with `wp eval "do_action('simple_ro_ingest_offers')"`.
+- After adding PHP classes, run `composer dump-autoload -o`.
 
-## Use as a template
+## Vestigial boilerplate
 
-```sh
-# 1. clone from the GitHub template
-gh repo create my-react-plugin --template wpbones/WPKirk-ReactJS-Boilerplate --public --clone
-cd my-react-plugin
-
-# 2. rename the PHP namespace + plugin slug
-composer install
-php bones rename "My React Plugin"
-
-# 3. build + activate
-yarn install && yarn build
-wp plugin activate my-react-plugin
-```
-
-Replace `app.tsx` with your screens. The `@wordpress/*` dependencies are marked as externals
-by `@wordpress/scripts`, so they aren't re-bundled — the plugin stays light.
-
-## Framework surface exercised
-
-This boilerplate is the **regression bed for the pure-WP React runtime path**:
-
-- `View::withAdminAppsScript()` + auto-discovery of `resources/assets/apps/*.tsx`
-- `@wordpress/scripts` externals mapping React → `window.wp.element`
-- `public/apps/<name>.asset.php` dependencies (auto-generated by `@wordpress/dependency-extraction-webpack-plugin`)
-- `wp_set_script_translations()` wiring from `AdminAppsAssetEnqueuer`
-- Jest preset with React Testing Library for hooks and components
+`resources/assets/apps/{app.tsx,use-counter.ts}` + its jest test and
+`plugin/Http/Controllers/Dashboard/` are leftovers from the WPKirk React boilerplate this was
+forked from. They're unused by the product (no wp-admin menu) but kept so `npm test` stays
+green; remove them once real component tests exist.

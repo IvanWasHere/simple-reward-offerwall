@@ -283,7 +283,7 @@ class Guard
       'expires'  => $maxAge > 0 ? time() + $maxAge : time() - 3600,
       'path'     => defined('COOKIEPATH') && COOKIEPATH ? COOKIEPATH : '/',
       'domain'   => defined('COOKIE_DOMAIN') ? COOKIE_DOMAIN : '',
-      'secure'   => is_ssl(),
+      'secure'   => self::isHttps(),
       'httponly' => $httpOnly,
       'samesite' => 'Strict',
     ]);
@@ -299,6 +299,21 @@ class Guard
   {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
     return is_string($ip) ? substr($ip, 0, 45) : '';
+  }
+
+  /**
+   * True when the request reached the site over HTTPS — including via a
+   * TLS-terminating reverse proxy that sets X-Forwarded-Proto. Session auth
+   * should always be HTTPS-only, so the Secure cookie flag must not silently
+   * drop when is_ssl() is false behind a proxy.
+   */
+  private static function isHttps(): bool
+  {
+    if (is_ssl()) {
+      return true;
+    }
+    $proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
+    return is_string($proto) && strtolower(explode(',', $proto)[0]) === 'https';
   }
 
   private static function cfg(string $key, $default = null)

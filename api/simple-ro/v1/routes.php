@@ -127,6 +127,13 @@ Route::post('/admin/providers/(?P<id>\d+)/ingest', 'SimpleRO\API\Admin\Providers
 Route::get('/admin/offers', 'SimpleRO\API\Admin\OffersController@index', $admin);
 Route::put('/admin/offers/(?P<id>\d+)', 'SimpleRO\API\Admin\OffersController@update', $admin);
 
+Route::get('/admin/users', 'SimpleRO\API\Admin\UsersController@index', $admin);
+Route::get('/admin/users/(?P<id>\d+)', 'SimpleRO\API\Admin\UsersController@show', $admin);
+Route::put('/admin/users/(?P<id>\d+)', 'SimpleRO\API\Admin\UsersController@update', $admin);
+
+Route::get('/admin/stats', 'SimpleRO\API\Admin\StatsController@index', $admin);
+Route::get('/admin/callbacks', 'SimpleRO\API\Admin\CallbacksController@index', $admin);
+
 Route::get('/admin/rewards', 'SimpleRO\API\Admin\RewardsController@index', $admin);
 Route::post('/admin/rewards/(?P<id>\d+)/approve', 'SimpleRO\API\Admin\RewardsController@approve', $admin);
 Route::post('/admin/rewards/(?P<id>\d+)/reject', 'SimpleRO\API\Admin\RewardsController@reject', $admin);
