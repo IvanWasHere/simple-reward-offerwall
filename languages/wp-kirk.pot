@@ -1,0 +1,65 @@
+# Copyright (C) 2024 Giovambattista Fazioli
+# This file is distributed under the GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Kirk ReactJS Boilerplate 1.7.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-kirk\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2024-11-12T16:49:02+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: wp-kirk\n"
+
+#. Plugin Name of the plugin
+#: wp-kirk.php
+msgid "WP Kirk ReactJS Boilerplate"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: wp-kirk.php
+msgid "https://github.com/wpbones/WPKirk-ReactJS-Boilerplate"
+msgstr ""
+
+#. Description of the plugin
+#: wp-kirk.php
+msgid "WP Bones template WordPress plugin"
+msgstr ""
+
+#. Author of the plugin
+#: wp-kirk.php
+msgid "Giovambattista Fazioli"
+msgstr ""
+
+#. Author URI of the plugin
+#: wp-kirk.php
+msgid "https://wpbones.com/"
+msgstr ""
+
+#: config/menus.php:25
+#: config/menus.php:26
+msgid "Main View"
+msgstr ""
+
+#: resources/views/dashboard/index.php:16
+msgid "ReactJS Application"
+msgstr ""
+
+#: resources/views/dashboard/index.php:20
+msgid "Controller"
+msgstr ""
+
+#: resources/views/dashboard/index.php:24
+msgid "This View"
+msgstr ""
+
+#: resources/views/dashboard/index.php:28
+msgid "Results"
+msgstr ""
+
+#: public/apps/app.js:1
+msgid "Say Hello, WP Bones Application"
+msgstr ""

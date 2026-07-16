@@ -1,0 +1,41 @@
+{
+  "name": "@wpbones/wpkirk-reactjs",
+  "version": "2.0.0",
+  "scripts": {
+    "dev": "wp-scripts start",
+    "build": "wp-scripts build",
+    "test": "wp-scripts test-unit-js",
+    "test:watch": "wp-scripts test-unit-js --watch",
+    "format": "wp-scripts format",
+    "format:check": "wp-scripts format --check",
+    "lint": "wp-scripts lint-js resources/",
+    "lint:style": "wp-scripts lint-style 'resources/**/*.{css,scss}'",
+    "check-engines": "wp-scripts check-engines",
+    "check-licenses": "wp-scripts check-licenses",
+    "packages-update": "wp-scripts packages-update",
+    "make-pot": "wp i18n make-pot . languages/wp-kirk.pot --slug=wp-kirk --domain=wp-kirk --exclude=node_modules,resources/assets",
+    "make-json": "wp i18n make-json languages/ --no-purge"
+  },
+  "license": "GPL-3.0",
+  "author": "Giovambattista Fazioli <wpbones.info@gmail.com>",
+  "dependencies": {
+    "@wordpress/components": "^32.6.0",
+    "@wordpress/data": "^10.44.0",
+    "@wordpress/hooks": "^4.44.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^15.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@wordpress/jest-preset-default": "^12.44.0",
+    "@wordpress/scripts": "^31.7.0",
+    "glob": "^11.0.0",
+    "less": "^4.6.4",
+    "less-loader": "^12.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "typescript": "^5.9.3",
+    "webpack-remove-empty-scripts": "^1.1.0"
+  }
+}
