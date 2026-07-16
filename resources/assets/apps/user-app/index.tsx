@@ -20,7 +20,7 @@ import {
 import { createRoot, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
-import { api, ApiError } from './api';
+import { api, ApiError } from '../shared/api';
 
 interface User {
   id: number;
@@ -364,6 +364,13 @@ const Reset = ( { token }: { token: string } ) => {
 
 const Dashboard = ( { user, onLogout }: { user: User; onLogout: () => void } ) => {
   const [ busy, setBusy ] = useState( false );
+  const [ balance, setBalance ] = useState< number | null >( null );
+
+  useEffect( () => {
+    api< { balance: number } >( '/me/balance' )
+      .then( ( r ) => setBalance( r.balance ) )
+      .catch( () => setBalance( null ) );
+  }, [] );
 
   const logout = async () => {
     setBusy( true );
@@ -394,15 +401,131 @@ const Dashboard = ( { user, onLogout }: { user: User; onLogout: () => void } ) =
             { __( 'Signed in as', 'simple-reward-offerwall' ) }{ ' ' }
             <strong>{ user.displayName || user.email }</strong>.
           </p>
-          <p style={ { marginTop: 12, opacity: 0.7 } }>
-            { __(
-              'Offers, rewards and payouts arrive in the next phases.',
-              'simple-reward-offerwall'
-            ) }
+          <p style={ { fontSize: 20, marginTop: 8 } }>
+            { __( 'Balance:', 'simple-reward-offerwall' ) }{ ' ' }
+            <strong>{ balance === null ? '…' : balance }</strong>{ ' ' }
+            { __( 'coins', 'simple-reward-offerwall' ) }
           </p>
         </CardBody>
       </Card>
+
+      <div style={ { marginTop: 24 } }>
+        <Offerwalls />
+      </div>
+
+      <div style={ { marginTop: 24 } }>
+        <Rewards />
+      </div>
     </div>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+
+interface Offerwall {
+  id: number;
+  name: string;
+  type: string;
+}
+
+const Offerwalls = () => {
+  const [ walls, setWalls ] = useState< Offerwall[] >( [] );
+  const [ activeUrl, setActiveUrl ] = useState< string | null >( null );
+
+  useEffect( () => {
+    api< { offerwalls: Offerwall[] } >( '/offerwalls' )
+      .then( ( r ) => setWalls( r.offerwalls || [] ) )
+      .catch( () => setWalls( [] ) );
+  }, [] );
+
+  const open = async ( id: number ) => {
+    try {
+      const r = await api< { url: string } >( `/offerwalls/${ id }/url` );
+      setActiveUrl( r.url );
+    } catch {
+      setActiveUrl( null );
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <h3 style={ { margin: 0 } }>{ __( 'Offerwalls', 'simple-reward-offerwall' ) }</h3>
+      </CardHeader>
+      <CardBody>
+        { walls.length === 0 && (
+          <p>{ __( 'No offerwalls available yet.', 'simple-reward-offerwall' ) }</p>
+        ) }
+        <Flex justify="flex-start" gap={ 2 } wrap>
+          { walls.map( ( w ) => (
+            <Button key={ w.id } variant="secondary" onClick={ () => open( w.id ) }>
+              { w.name }
+            </Button>
+          ) ) }
+        </Flex>
+        { activeUrl && (
+          <div style={ { marginTop: 16 } }>
+            <iframe
+              title="offerwall"
+              src={ activeUrl }
+              style={ { width: '100%', height: 600, border: '1px solid #ddd', borderRadius: 8 } }
+            />
+          </div>
+        ) }
+      </CardBody>
+    </Card>
+  );
+};
+
+interface RewardRow {
+  id: number;
+  coins_value: number;
+  status: string;
+  provider_name: string | null;
+  created_at: string;
+}
+
+const Rewards = () => {
+  const [ rewards, setRewards ] = useState< RewardRow[] >( [] );
+
+  useEffect( () => {
+    api< { rewards: RewardRow[] } >( '/me/rewards' )
+      .then( ( r ) => setRewards( r.rewards || [] ) )
+      .catch( () => setRewards( [] ) );
+  }, [] );
+
+  return (
+    <Card>
+      <CardHeader>
+        <h3 style={ { margin: 0 } }>{ __( 'Rewards', 'simple-reward-offerwall' ) }</h3>
+      </CardHeader>
+      <CardBody>
+        { rewards.length === 0 ? (
+          <p>
+            { __( 'No rewards yet — complete an offer to earn coins.', 'simple-reward-offerwall' ) }
+          </p>
+        ) : (
+          <table style={ { width: '100%', borderCollapse: 'collapse' } }>
+            <thead>
+              <tr style={ { textAlign: 'left', borderBottom: '1px solid #ddd' } }>
+                <th>{ __( 'Provider', 'simple-reward-offerwall' ) }</th>
+                <th>{ __( 'Coins', 'simple-reward-offerwall' ) }</th>
+                <th>{ __( 'Status', 'simple-reward-offerwall' ) }</th>
+              </tr>
+            </thead>
+            <tbody>
+              { rewards.map( ( r ) => (
+                <tr key={ r.id } style={ { borderBottom: '1px solid #f0f0f0' } }>
+                  <td>{ r.provider_name || '—' }</td>
+                  <td>{ r.coins_value }</td>
+                  <td>{ r.status }</td>
+                </tr>
+              ) ) }
+            </tbody>
+          </table>
+        ) }
+      </CardBody>
+    </Card>
   );
 };
 

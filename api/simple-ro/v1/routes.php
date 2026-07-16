@@ -59,3 +59,45 @@ Route::get('/auth/me', 'SimpleRO\API\AuthController@me');
 Route::delete('/auth/session', 'SimpleRO\API\AuthController@logout', [
   'permission_callback' => Guard::authenticated(),
 ]);
+
+/*
+|--------------------------------------------------------------------------
+| Server-to-server callback (public — signature-authenticated, no cookie)
+|--------------------------------------------------------------------------
+*/
+Route::request(['get', 'post'], '/callback/(?P<hash>[a-zA-Z0-9]+)', 'SimpleRO\API\CallbackController@handle');
+
+/*
+|--------------------------------------------------------------------------
+| User (role: user)
+|--------------------------------------------------------------------------
+*/
+$user = ['permission_callback' => Guard::role('user')];
+
+Route::get('/offerwalls', 'SimpleRO\API\User\OfferwallsController@index', $user);
+Route::get('/offerwalls/(?P<id>\d+)/url', 'SimpleRO\API\User\OfferwallsController@url', $user);
+Route::get('/me/balance', 'SimpleRO\API\User\AccountController@balance', $user);
+Route::get('/me/ledger', 'SimpleRO\API\User\AccountController@ledger', $user);
+Route::get('/me/rewards', 'SimpleRO\API\User\AccountController@rewards', $user);
+
+/*
+|--------------------------------------------------------------------------
+| Admin (role: admin)
+|--------------------------------------------------------------------------
+*/
+$admin = ['permission_callback' => Guard::role('admin')];
+
+Route::get('/admin/providers', 'SimpleRO\API\Admin\ProvidersController@index', $admin);
+Route::post('/admin/providers', 'SimpleRO\API\Admin\ProvidersController@store', $admin);
+Route::get('/admin/providers/(?P<id>\d+)', 'SimpleRO\API\Admin\ProvidersController@show', $admin);
+Route::put('/admin/providers/(?P<id>\d+)', 'SimpleRO\API\Admin\ProvidersController@update', $admin);
+Route::delete('/admin/providers/(?P<id>\d+)', 'SimpleRO\API\Admin\ProvidersController@destroy', $admin);
+
+Route::get('/admin/providers/(?P<id>\d+)/callbacks', 'SimpleRO\API\Admin\ProviderCallbacksController@index', $admin);
+Route::post('/admin/providers/(?P<id>\d+)/callbacks', 'SimpleRO\API\Admin\ProviderCallbacksController@store', $admin);
+Route::put('/admin/providers/(?P<id>\d+)/callbacks/(?P<cbId>\d+)', 'SimpleRO\API\Admin\ProviderCallbacksController@update', $admin);
+Route::delete('/admin/providers/(?P<id>\d+)/callbacks/(?P<cbId>\d+)', 'SimpleRO\API\Admin\ProviderCallbacksController@destroy', $admin);
+
+Route::get('/admin/rewards', 'SimpleRO\API\Admin\RewardsController@index', $admin);
+Route::post('/admin/rewards/(?P<id>\d+)/approve', 'SimpleRO\API\Admin\RewardsController@approve', $admin);
+Route::post('/admin/rewards/(?P<id>\d+)/reject', 'SimpleRO\API\Admin\RewardsController@reject', $admin);

@@ -152,6 +152,7 @@ return [
 
   'providers' => [
     \SimpleRO\Providers\AppShortcodesServiceProvider::class,
+    \SimpleRO\Providers\CliServiceProvider::class,
   ]
 
 ];
