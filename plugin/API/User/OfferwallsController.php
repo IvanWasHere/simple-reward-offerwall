@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
 }
 
 use SimpleRO\API\Auth\Guard;
-use SimpleRO\Services\MacroBuilder;
+use SimpleRO\Providers\ProviderAdapterFactory;
 use SimpleRO\WPBones\Routing\API\RestController;
 
 /**
@@ -69,17 +69,11 @@ class OfferwallsController extends RestController
       ['%d', '%d', '%d', '%s', '%s', '%s']
     );
 
-    $macros = json_decode((string) $provider->macros, true) ?: [];
-    $context = [
-      'user_id'   => (int) $user->id,
-      'user_hash' => $user->unique_user_hash,
-      'adslot_id' => $provider->adslot_id,
-      'session_id' => $nonce,
-    ];
-
+    // Build the per-user iframe URL via the provider adapter (macro substitution).
     // The template is stored raw; after substitution (values urlencoded) it is a
-    // valid URL, so escape it now before handing it to the browser as an iframe src.
-    $url = esc_url_raw(MacroBuilder::build((string) $provider->url, $macros, $context));
+    // valid URL, so escape it before handing it to the browser as an iframe src.
+    $adapter = ProviderAdapterFactory::for($provider);
+    $url = esc_url_raw($adapter->buildUserUrl($provider, $user, ['session_id' => $nonce]));
 
     return $this->response(['url' => $url]);
   }

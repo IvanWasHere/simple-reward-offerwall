@@ -74,11 +74,16 @@ Route::request(['get', 'post'], '/callback/(?P<hash>[a-zA-Z0-9]+)', 'SimpleRO\AP
 */
 $user = ['permission_callback' => Guard::role('user')];
 
+Route::get('/offers', 'SimpleRO\API\User\OffersController@index', $user);
+Route::post('/clicks', 'SimpleRO\API\User\ClicksController@store', $user);
 Route::get('/offerwalls', 'SimpleRO\API\User\OfferwallsController@index', $user);
 Route::get('/offerwalls/(?P<id>\d+)/url', 'SimpleRO\API\User\OfferwallsController@url', $user);
 Route::get('/me/balance', 'SimpleRO\API\User\AccountController@balance', $user);
 Route::get('/me/ledger', 'SimpleRO\API\User\AccountController@ledger', $user);
 Route::get('/me/rewards', 'SimpleRO\API\User\AccountController@rewards', $user);
+Route::get('/payouts', 'SimpleRO\API\User\RedemptionsController@catalog', $user);
+Route::post('/redemptions', 'SimpleRO\API\User\RedemptionsController@store', $user);
+Route::get('/me/redemptions', 'SimpleRO\API\User\RedemptionsController@mine', $user);
 
 /*
 |--------------------------------------------------------------------------
@@ -101,3 +106,12 @@ Route::delete('/admin/providers/(?P<id>\d+)/callbacks/(?P<cbId>\d+)', 'SimpleRO\
 Route::get('/admin/rewards', 'SimpleRO\API\Admin\RewardsController@index', $admin);
 Route::post('/admin/rewards/(?P<id>\d+)/approve', 'SimpleRO\API\Admin\RewardsController@approve', $admin);
 Route::post('/admin/rewards/(?P<id>\d+)/reject', 'SimpleRO\API\Admin\RewardsController@reject', $admin);
+
+Route::get('/admin/payouts', 'SimpleRO\API\Admin\PayoutsController@index', $admin);
+Route::post('/admin/payouts', 'SimpleRO\API\Admin\PayoutsController@store', $admin);
+Route::put('/admin/payouts/(?P<id>\d+)', 'SimpleRO\API\Admin\PayoutsController@update', $admin);
+Route::delete('/admin/payouts/(?P<id>\d+)', 'SimpleRO\API\Admin\PayoutsController@destroy', $admin);
+
+Route::get('/admin/redemptions', 'SimpleRO\API\Admin\RedemptionsController@index', $admin);
+Route::post('/admin/redemptions/(?P<id>\d+)/approve', 'SimpleRO\API\Admin\RedemptionsController@approve', $admin);
+Route::post('/admin/redemptions/(?P<id>\d+)/reject', 'SimpleRO\API\Admin\RedemptionsController@reject', $admin);

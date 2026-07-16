@@ -145,6 +145,12 @@ const AdminHome = ( { me }: { me: Me } ) => {
       <div style={ { marginTop: 24 } }>
         <RewardsQueue />
       </div>
+      <div style={ { marginTop: 24 } }>
+        <RedemptionsQueue />
+      </div>
+      <div style={ { marginTop: 24 } }>
+        <PayoutsManager />
+      </div>
     </div>
   );
 };
@@ -563,6 +569,232 @@ const RewardsQueue = () => {
         ) }
       </CardBody>
     </Card>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+
+interface RedemptionRow {
+  id: number;
+  user_email: string | null;
+  coins_spent: number;
+  payout_name: string | null;
+}
+
+const RedemptionsQueue = () => {
+  const [ rows, setRows ] = useState< RedemptionRow[] >( [] );
+
+  const reload = () =>
+    api< { redemptions: RedemptionRow[] } >( '/admin/redemptions?status=pending' )
+      .then( ( r ) => setRows( r.redemptions || [] ) )
+      .catch( () => setRows( [] ) );
+
+  useEffect( () => {
+    reload();
+  }, [] );
+
+  const act = async ( id: number, action: 'approve' | 'reject' ) => {
+    try {
+      await api( `/admin/redemptions/${ id }/${ action }`, { method: 'POST' } );
+    } finally {
+      reload();
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <h2 style={ { margin: 0 } }>{ __( 'Pending redemptions', 'simple-reward-offerwall' ) }</h2>
+      </CardHeader>
+      <CardBody>
+        { rows.length === 0 ? (
+          <p>{ __( 'Nothing pending.', 'simple-reward-offerwall' ) }</p>
+        ) : (
+          <table style={ { width: '100%', borderCollapse: 'collapse' } }>
+            <thead>
+              <tr style={ { textAlign: 'left', borderBottom: '1px solid #ddd' } }>
+                <th>{ __( 'User', 'simple-reward-offerwall' ) }</th>
+                <th>{ __( 'Reward', 'simple-reward-offerwall' ) }</th>
+                <th>{ __( 'Coins', 'simple-reward-offerwall' ) }</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              { rows.map( ( r ) => (
+                <tr key={ r.id } style={ { borderBottom: '1px solid #f0f0f0' } }>
+                  <td>{ r.user_email || r.id }</td>
+                  <td>{ r.payout_name || '—' }</td>
+                  <td>{ r.coins_spent }</td>
+                  <td style={ { textAlign: 'right' } }>
+                    <Flex justify="flex-end" gap={ 1 }>
+                      <Button variant="primary" onClick={ () => act( r.id, 'approve' ) }>
+                        { __( 'Approve', 'simple-reward-offerwall' ) }
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        isDestructive
+                        onClick={ () => act( r.id, 'reject' ) }
+                      >
+                        { __( 'Reject', 'simple-reward-offerwall' ) }
+                      </Button>
+                    </Flex>
+                  </td>
+                </tr>
+              ) ) }
+            </tbody>
+          </table>
+        ) }
+      </CardBody>
+    </Card>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+
+interface Payout {
+  id: number;
+  name: string;
+  valueCoins: number;
+  valueMoney: number;
+  stock: number;
+  status: string;
+}
+
+const PayoutsManager = () => {
+  const [ payouts, setPayouts ] = useState< Payout[] >( [] );
+
+  const reload = () =>
+    api< { payouts: Payout[] } >( '/admin/payouts' )
+      .then( ( r ) => setPayouts( r.payouts || [] ) )
+      .catch( () => setPayouts( [] ) );
+
+  useEffect( () => {
+    reload();
+  }, [] );
+
+  return (
+    <Card>
+      <CardHeader>
+        <h2 style={ { margin: 0 } }>{ __( 'Payout catalog', 'simple-reward-offerwall' ) }</h2>
+      </CardHeader>
+      <CardBody>
+        <table style={ { width: '100%', borderCollapse: 'collapse', marginBottom: 16 } }>
+          <thead>
+            <tr style={ { textAlign: 'left', borderBottom: '1px solid #ddd' } }>
+              <th>{ __( 'Name', 'simple-reward-offerwall' ) }</th>
+              <th>{ __( 'Coins', 'simple-reward-offerwall' ) }</th>
+              <th>{ __( 'Value', 'simple-reward-offerwall' ) }</th>
+              <th>{ __( 'Stock', 'simple-reward-offerwall' ) }</th>
+              <th>{ __( 'Status', 'simple-reward-offerwall' ) }</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            { payouts.map( ( p ) => (
+              <tr key={ p.id } style={ { borderBottom: '1px solid #f0f0f0' } }>
+                <td>{ p.name }</td>
+                <td>{ p.valueCoins }</td>
+                <td>{ ( p.valueMoney / 100 ).toFixed( 2 ) }</td>
+                <td>{ p.stock < 0 ? '∞' : p.stock }</td>
+                <td>{ p.status }</td>
+                <td style={ { textAlign: 'right' } }>
+                  <Button
+                    variant="link"
+                    isDestructive
+                    onClick={ async () => {
+                      await api( `/admin/payouts/${ p.id }`, { method: 'DELETE' } );
+                      reload();
+                    } }
+                  >
+                    { __( 'Delete', 'simple-reward-offerwall' ) }
+                  </Button>
+                </td>
+              </tr>
+            ) ) }
+          </tbody>
+        </table>
+        <PayoutForm onCreated={ reload } />
+      </CardBody>
+    </Card>
+  );
+};
+
+const PayoutForm = ( { onCreated }: { onCreated: () => void } ) => {
+  const [ name, setName ] = useState( '' );
+  const [ coins, setCoins ] = useState( '100' );
+  const [ money, setMoney ] = useState( '500' );
+  const [ stock, setStock ] = useState( '-1' );
+  const [ error, setError ] = useState< string | null >( null );
+  const [ busy, setBusy ] = useState( false );
+
+  const submit = async () => {
+    setError( null );
+    setBusy( true );
+    try {
+      await api( '/admin/payouts', {
+        method: 'POST',
+        body: {
+          name,
+          value_coins: parseInt( coins, 10 ) || 0,
+          value_money: parseInt( money, 10 ) || 0,
+          stock: parseInt( stock, 10 ),
+        },
+      } );
+      setName( '' );
+      onCreated();
+    } catch ( e ) {
+      setError( e instanceof ApiError ? e.message : 'Error' );
+    } finally {
+      setBusy( false );
+    }
+  };
+
+  return (
+    <details>
+      <summary style={ { cursor: 'pointer', fontWeight: 600 } }>
+        { __( 'Add payout', 'simple-reward-offerwall' ) }
+      </summary>
+      <div style={ { marginTop: 12 } }>
+        { error && (
+          <Notice status="error" isDismissible={ false }>
+            { error }
+          </Notice>
+        ) }
+        <TextControl
+          label={ __( 'Name', 'simple-reward-offerwall' ) }
+          value={ name }
+          onChange={ setName }
+          __nextHasNoMarginBottom
+          __next40pxDefaultSize
+        />
+        <TextControl
+          label={ __( 'Coin price', 'simple-reward-offerwall' ) }
+          value={ coins }
+          onChange={ setCoins }
+          __nextHasNoMarginBottom
+          __next40pxDefaultSize
+        />
+        <TextControl
+          label={ __( 'Money value (cents)', 'simple-reward-offerwall' ) }
+          value={ money }
+          onChange={ setMoney }
+          __nextHasNoMarginBottom
+          __next40pxDefaultSize
+        />
+        <TextControl
+          label={ __( 'Stock (-1 = unlimited)', 'simple-reward-offerwall' ) }
+          value={ stock }
+          onChange={ setStock }
+          __nextHasNoMarginBottom
+          __next40pxDefaultSize
+        />
+        <div style={ { marginTop: 12 } }>
+          <Button variant="primary" onClick={ submit } isBusy={ busy } disabled={ busy }>
+            { __( 'Create payout', 'simple-reward-offerwall' ) }
+          </Button>
+        </div>
+      </div>
+    </details>
   );
 };
 

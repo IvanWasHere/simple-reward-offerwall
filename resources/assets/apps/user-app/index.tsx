@@ -365,12 +365,14 @@ const Reset = ( { token }: { token: string } ) => {
 const Dashboard = ( { user, onLogout }: { user: User; onLogout: () => void } ) => {
   const [ busy, setBusy ] = useState( false );
   const [ balance, setBalance ] = useState< number | null >( null );
+  const [ tick, setTick ] = useState( 0 );
+  const bump = () => setTick( ( t ) => t + 1 );
 
   useEffect( () => {
     api< { balance: number } >( '/me/balance' )
       .then( ( r ) => setBalance( r.balance ) )
       .catch( () => setBalance( null ) );
-  }, [] );
+  }, [ tick ] );
 
   const logout = async () => {
     setBusy( true );
@@ -410,7 +412,19 @@ const Dashboard = ( { user, onLogout }: { user: User; onLogout: () => void } ) =
       </Card>
 
       <div style={ { marginTop: 24 } }>
+        <Offers />
+      </div>
+
+      <div style={ { marginTop: 24 } }>
         <Offerwalls />
+      </div>
+
+      <div style={ { marginTop: 24 } }>
+        <Payouts onRedeemed={ bump } />
+      </div>
+
+      <div style={ { marginTop: 24 } }>
+        <MyRedemptions tick={ tick } />
       </div>
 
       <div style={ { marginTop: 24 } }>
@@ -421,6 +435,105 @@ const Dashboard = ( { user, onLogout }: { user: User; onLogout: () => void } ) =
 };
 
 /* ------------------------------------------------------------------ */
+
+interface Offer {
+  providerId: number;
+  providerName: string;
+  providerOfferId: string;
+  name: string;
+  tasks: unknown;
+  totalPayout: number;
+  device: string;
+  os: string;
+  country: string;
+  icons: Record< string, string >;
+  source: string;
+}
+
+const Offers = () => {
+  const [ offers, setOffers ] = useState< Offer[] >( [] );
+  const [ loading, setLoading ] = useState( true );
+
+  useEffect( () => {
+    api< { offers: Offer[] } >( '/offers' )
+      .then( ( r ) => setOffers( r.offers || [] ) )
+      .catch( () => setOffers( [] ) )
+      .finally( () => setLoading( false ) );
+  }, [] );
+
+  const start = async ( o: Offer ) => {
+    try {
+      const r = await api< { url: string } >( '/clicks', {
+        method: 'POST',
+        body: { provider_id: o.providerId, provider_offer_id: o.providerOfferId },
+      } );
+      window.open( r.url, '_blank', 'noopener' );
+    } catch {
+      // ignore
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <h3 style={ { margin: 0 } }>{ __( 'Offers', 'simple-reward-offerwall' ) }</h3>
+      </CardHeader>
+      <CardBody>
+        { loading && <Spinner /> }
+        { ! loading && offers.length === 0 && (
+          <p>{ __( 'No offers available right now.', 'simple-reward-offerwall' ) }</p>
+        ) }
+        <Flex justify="flex-start" gap={ 3 } wrap align="stretch">
+          { offers.map( ( o ) => {
+            const icon = o.icons?.large || o.icons?.mid || o.icons?.small || '';
+            return (
+              <div
+                key={ `${ o.providerId }:${ o.providerOfferId }` }
+                style={ {
+                  border: '1px solid #ddd',
+                  borderRadius: 8,
+                  padding: 16,
+                  width: 220,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                } }
+              >
+                <Flex justify="flex-start" gap={ 2 } align="center">
+                  { icon && (
+                    <img
+                      src={ icon }
+                      alt=""
+                      width={ 40 }
+                      height={ 40 }
+                      style={ { borderRadius: 8, objectFit: 'cover' } }
+                    />
+                  ) }
+                  <strong>{ o.name }</strong>
+                </Flex>
+                { typeof o.tasks === 'string' && (
+                  <p style={ { margin: 0, fontSize: 13 } }>{ o.tasks }</p>
+                ) }
+                <p style={ { margin: 0, fontSize: 13, opacity: 0.7 } }>
+                  { [ o.device, o.os, o.country ].filter( Boolean ).join( ' · ' ) }
+                </p>
+                <div style={ { marginTop: 'auto' } }>
+                  <strong>{ o.totalPayout }</strong>{ ' ' }
+                  <span style={ { opacity: 0.7 } }>
+                    { __( 'payout', 'simple-reward-offerwall' ) }
+                  </span>
+                </div>
+                <Button variant="primary" onClick={ () => start( o ) }>
+                  { __( 'Start', 'simple-reward-offerwall' ) }
+                </Button>
+              </div>
+            );
+          } ) }
+        </Flex>
+      </CardBody>
+    </Card>
+  );
+};
 
 interface Offerwall {
   id: number;
@@ -524,6 +637,146 @@ const Rewards = () => {
             </tbody>
           </table>
         ) }
+      </CardBody>
+    </Card>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+
+interface Payout {
+  id: number;
+  name: string;
+  valueCoins: number;
+  valueMoney: number;
+  currency: string;
+}
+
+const Payouts = ( { onRedeemed }: { onRedeemed: () => void } ) => {
+  const [ payouts, setPayouts ] = useState< Payout[] >( [] );
+  const [ balance, setBalance ] = useState< number >( 0 );
+  const [ error, setError ] = useState< string | null >( null );
+  const [ busyId, setBusyId ] = useState< number | null >( null );
+
+  const load = () =>
+    api< { payouts: Payout[]; balance: number } >( '/payouts' )
+      .then( ( r ) => {
+        setPayouts( r.payouts || [] );
+        setBalance( r.balance );
+      } )
+      .catch( () => setPayouts( [] ) );
+
+  useEffect( () => {
+    load();
+  }, [] );
+
+  const redeem = async ( id: number ) => {
+    setBusyId( id );
+    setError( null );
+    try {
+      await api( '/redemptions', { method: 'POST', body: { payout_id: id } } );
+      await load();
+      onRedeemed();
+    } catch ( e ) {
+      setError(
+        e instanceof ApiError ? e.message : __( 'Could not redeem.', 'simple-reward-offerwall' )
+      );
+    } finally {
+      setBusyId( null );
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <h3 style={ { margin: 0 } }>{ __( 'Redeem coins', 'simple-reward-offerwall' ) }</h3>
+      </CardHeader>
+      <CardBody>
+        <ErrorNotice message={ error } />
+        { payouts.length === 0 ? (
+          <p>{ __( 'No rewards available to redeem yet.', 'simple-reward-offerwall' ) }</p>
+        ) : (
+          <Flex justify="flex-start" gap={ 3 } wrap align="stretch">
+            { payouts.map( ( p ) => {
+              const affordable = balance >= p.valueCoins;
+              return (
+                <div
+                  key={ p.id }
+                  style={ {
+                    border: '1px solid #ddd',
+                    borderRadius: 8,
+                    padding: 16,
+                    width: 180,
+                    opacity: affordable ? 1 : 0.6,
+                  } }
+                >
+                  <strong>{ p.name }</strong>
+                  <p style={ { margin: '8px 0' } }>
+                    { p.valueCoins } { __( 'coins', 'simple-reward-offerwall' ) }
+                  </p>
+                  <Button
+                    variant="primary"
+                    disabled={ ! affordable || busyId === p.id }
+                    isBusy={ busyId === p.id }
+                    onClick={ () => redeem( p.id ) }
+                  >
+                    { __( 'Redeem', 'simple-reward-offerwall' ) }
+                  </Button>
+                </div>
+              );
+            } ) }
+          </Flex>
+        ) }
+      </CardBody>
+    </Card>
+  );
+};
+
+interface RedemptionRow {
+  id: number;
+  coins_spent: number;
+  status: string;
+  payout_name: string | null;
+  created_at: string;
+}
+
+const MyRedemptions = ( { tick }: { tick: number } ) => {
+  const [ rows, setRows ] = useState< RedemptionRow[] >( [] );
+
+  useEffect( () => {
+    api< { redemptions: RedemptionRow[] } >( '/me/redemptions' )
+      .then( ( r ) => setRows( r.redemptions || [] ) )
+      .catch( () => setRows( [] ) );
+  }, [ tick ] );
+
+  if ( rows.length === 0 ) {
+    return null;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <h3 style={ { margin: 0 } }>{ __( 'My redemptions', 'simple-reward-offerwall' ) }</h3>
+      </CardHeader>
+      <CardBody>
+        <table style={ { width: '100%', borderCollapse: 'collapse' } }>
+          <thead>
+            <tr style={ { textAlign: 'left', borderBottom: '1px solid #ddd' } }>
+              <th>{ __( 'Reward', 'simple-reward-offerwall' ) }</th>
+              <th>{ __( 'Coins', 'simple-reward-offerwall' ) }</th>
+              <th>{ __( 'Status', 'simple-reward-offerwall' ) }</th>
+            </tr>
+          </thead>
+          <tbody>
+            { rows.map( ( r ) => (
+              <tr key={ r.id } style={ { borderBottom: '1px solid #f0f0f0' } }>
+                <td>{ r.payout_name || '—' }</td>
+                <td>{ r.coins_spent }</td>
+                <td>{ r.status }</td>
+              </tr>
+            ) ) }
+          </tbody>
+        </table>
       </CardBody>
     </Card>
   );
