@@ -34,7 +34,7 @@ class OffersController extends RestController
     $p = $wpdb->prefix . 'ro_providers';
 
     $rows = $wpdb->get_results(
-      "SELECT o.*, p.name AS provider_name
+      "SELECT o.*, p.name AS provider_name, p.coin_rate
          FROM {$o} o
          INNER JOIN {$p} p ON p.id = o.provider_id
         WHERE o.active = 1 AND o.admin_disabled = 0 AND p.status = 'active'
@@ -50,6 +50,9 @@ class OffersController extends RestController
         'name'            => $r->name,
         'tasks'           => json_decode((string) $r->tasks, true),
         'totalPayout'     => (float) $r->total_payout,
+        // Estimated coins on completion — same formula the callback uses to
+        // credit rewards: round(amount * provider coin_rate).
+        'coins'           => (int) round((float) $r->total_payout * (float) $r->coin_rate),
         'device'          => $r->device,
         'os'              => $r->os,
         'country'         => $r->country,
@@ -75,6 +78,9 @@ class OffersController extends RestController
         // Do not expose the raw outbound link in the list; /clicks resolves it.
         unset($offer['link']);
         $offer['providerName'] = $provider->name;
+        if (!isset($offer['coins']) && isset($offer['totalPayout'])) {
+          $offer['coins'] = (int) round((float) $offer['totalPayout'] * (float) $provider->coin_rate);
+        }
         $out[] = $offer;
       }
     }

@@ -32,11 +32,44 @@ return [
     'csrf_header'             => 'X-RO-CSRF',
   ],
 
-  // WP pages hosting each front-end SPA (by slug). The shortcodes
-  // [simple_ro_user_app] / [simple_ro_admin_app] / [simple_ro_support_app]
-  // are placed on these pages.
+  // The user SPA is served at this path by a full template takeover
+  // (SpaRouteServiceProvider) — NOT a shortcode page.
+  'reward_slug' => 'reward',
+
+  // Lucky Wheel (WheelController). One free spin per UTC day. The server picks a
+  // segment by weight and credits `coins` — the client never asserts a prize.
+  'wheel' => [
+    'segments' => [
+      ['label' => '5', 'coins' => 5, 'weight' => 30],
+      ['label' => '10', 'coins' => 10, 'weight' => 25],
+      ['label' => '25', 'coins' => 25, 'weight' => 18],
+      ['label' => '50', 'coins' => 50, 'weight' => 12],
+      ['label' => '2', 'coins' => 2, 'weight' => 8],
+      ['label' => '100', 'coins' => 100, 'weight' => 4],
+      ['label' => '15', 'coins' => 15, 'weight' => 2],
+      ['label' => '1', 'coins' => 1, 'weight' => 1],
+    ],
+  ],
+
+  // Bonus rewards (BonusController). `type`: daily (claimable once per UTC day),
+  // one_time (once ever), milestone (once, after `req` approved rewards).
+  'bonuses' => [
+    ['key' => 'daily_login', 'name' => 'Daily Login', 'desc' => 'Log in every day', 'coins' => 10, 'type' => 'daily', 'icon' => 'fa-calendar-check', 'color' => '#00b67a'],
+    ['key' => 'first_offer', 'name' => 'First Reward', 'desc' => 'Earn your first reward', 'coins' => 50, 'type' => 'milestone', 'req' => 1, 'icon' => 'fa-star', 'color' => '#13a0e8'],
+    ['key' => 'five_offers', 'name' => '5 Rewards Done', 'desc' => 'Earn 5 rewards', 'coins' => 100, 'type' => 'milestone', 'req' => 5, 'icon' => 'fa-trophy', 'color' => '#ff2d6c'],
+    ['key' => 'ten_offers', 'name' => '10 Rewards Done', 'desc' => 'Earn 10 rewards', 'coins' => 250, 'type' => 'milestone', 'req' => 10, 'icon' => 'fa-medal', 'color' => '#4179d6'],
+  ],
+
+  // Referral: coins credited to the referrer when a referred user earns their
+  // first approved reward (ReferralService).
+  'referral' => [
+    'bonus_coins' => 200,
+  ],
+
+  // WP pages hosting the staff SPAs (by slug). The shortcodes
+  // [simple_ro_admin_app] / [simple_ro_support_app] are placed on these pages.
+  // (The user app moved to the /reward takeover; no 'user' page anymore.)
   'pages' => [
-    'user'    => 'dashboard',
     'admin'   => 'offerwall-admin',
     'support' => 'offerwall-support',
   ],

@@ -4,12 +4,14 @@
   "scripts": {
     "dev": "wp-scripts start",
     "build": "wp-scripts build",
+    "dev:user": "vite --config resources/apps/user/vite.config.ts",
+    "build:user": "vite build --config resources/apps/user/vite.config.ts",
     "test": "wp-scripts test-unit-js",
     "test:watch": "wp-scripts test-unit-js --watch",
     "format": "wp-scripts format",
     "format:check": "wp-scripts format --check",
-    "lint": "wp-scripts lint-js resources/",
-    "lint:style": "wp-scripts lint-style 'resources/**/*.{css,scss}'",
+    "lint": "wp-scripts lint-js resources/assets/",
+    "lint:style": "wp-scripts lint-style 'resources/assets/**/*.{css,scss}'",
     "check-engines": "wp-scripts check-engines",
     "check-licenses": "wp-scripts check-licenses",
     "packages-update": "wp-scripts packages-update",
@@ -23,13 +25,15 @@
     "@wordpress/data": "^10.44.0",
     "@wordpress/element": "^6.44.0",
     "@wordpress/hooks": "^4.44.0",
-    "@wordpress/i18n": "^6.17.0"
+    "@wordpress/i18n": "^6.17.0",
+    "react-router-dom": "^6.30.4"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^15.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
     "@wordpress/jest-preset-default": "^12.44.0",
     "@wordpress/scripts": "^31.7.0",
     "glob": "^11.0.0",
@@ -38,6 +42,7 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "typescript": "^5.9.3",
+    "vite": "^5.4.21",
     "webpack-remove-empty-scripts": "^1.1.0"
   }
 }

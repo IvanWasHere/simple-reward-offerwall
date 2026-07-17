@@ -151,6 +151,7 @@ return [
   */
 
   'providers' => [
+    \SimpleRO\Providers\SpaRouteServiceProvider::class,
     \SimpleRO\Providers\AppShortcodesServiceProvider::class,
     \SimpleRO\Providers\CliServiceProvider::class,
     \SimpleRO\Providers\IngestOffersSchedule::class,

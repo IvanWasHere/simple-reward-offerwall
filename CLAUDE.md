@@ -19,13 +19,24 @@ Namespace `SimpleRO` (PSR-4 → `plugin/`). REST API at `/wp-json/simple-ro/v1`.
   `plugin/API/**` (`SimpleRO\API\...`). Every non-public route sets an explicit
   `permission_callback` = `Guard::role('user'|'admin'|'support')` / `Guard::authenticated()`
   (`admin` is a superset of `support`). Public: `health`, `auth/*`, `callback/{hash}`.
-- **Three SPAs** in `resources/assets/apps/{user,admin,support}-app/index.tsx` (shared
-  client `resources/assets/apps/shared/api.ts`), built by `@wordpress/scripts` to
-  `public/apps/<name>.js`, mounted on front-end pages via shortcodes
-  (`[simple_ro_user_app]` / `_admin_app` / `_support_app`) from
-  `plugin/Providers/AppShortcodesServiceProvider.php`. Pages `/dashboard`,
-  `/offerwall-admin`, `/offerwall-support` are auto-created on activation
-  (`plugin/activation.php`).
+- **Three SPAs, two toolchains.**
+  - **User app** ("RewardVault") is a **Vite + React** app in `resources/apps/user/`
+    (source lives OUTSIDE `resources/assets/apps` so webpack's `autoEntries` ignores it),
+    built to `public/apps/user/` with a Vite manifest. It is served at **`/reward`** by a
+    **full template takeover**: `plugin/Providers/SpaRouteServiceProvider.php` registers a
+    `^reward(/.*)?/?$` rewrite rule, and on `template_redirect` renders a bare HTML shell
+    (no theme header/footer) that reads `.vite/manifest.json` and mounts the bundle.
+    Client routing is `react-router` (basename `/reward`); auth is client-gated (the SPA
+    shows login/register when `/auth/me` → 401). The `/reward` rewrite is flushed on
+    activation (`plugin/activation.php`).
+  - **Admin & support apps** remain `@wordpress/scripts` bundles in
+    `resources/assets/apps/{admin,support}-app/index.tsx`, built to `public/apps/<name>.js`,
+    mounted via shortcodes (`[simple_ro_admin_app]` / `_support_app`) from
+    `plugin/Providers/AppShortcodesServiceProvider.php` on the auto-created
+    `/offerwall-admin` / `/offerwall-support` pages.
+  - The `window.SimpleRO` boot object (REST base, cookie/CSRF names, URLs) is shared by
+    both via `plugin/Services/SpaBoot.php`. Shared REST client: the user app has its own
+    `resources/apps/user/src/lib/api.ts`; staff apps use `resources/assets/apps/shared/api.ts`.
 - **Providers are adapters.** `plugin/Providers/Contracts/ProviderAdapter.php` +
   `Adapters/{Iframe,OfferwallApi,Static}Adapter.php` + `ProviderAdapterFactory`. Types:
   `iframe` (offerwall in an `<iframe>`, per-user URL via macro substitution —
@@ -53,18 +64,45 @@ Namespace `SimpleRO` (PSR-4 → `plugin/`). REST API at `/wp-json/simple-ro/v1`.
   are anonymous classes using `dbDelta` (additive — editing a migration to add a column is
   the intended pattern here). Bump the version header to force a re-run.
 
+## Engagement endpoints (user role)
+
+Beyond offers/clicks/balance/payouts, the user API also serves the RewardVault
+"Bonus"/"Surveys" surfaces (all under `Guard::role('user')`):
+- `GET /surveys` — offers from providers whose `config` JSON has `{"survey":true}`
+  (`SurveysController`), same normalized shape as `/offers`.
+- `GET /wheel` + `POST /wheel/spin` — daily Lucky Wheel (`WheelController`). Server picks a
+  segment by weight (`config custom.wheel.segments`) and credits coins; one spin per UTC day
+  via `UNIQUE(user_id, spin_date)` on `ro_wheel_spins`. Client never asserts the prize.
+- `GET /leaderboard` — top 10 by positive ledger deltas (`LeaderboardController`); exposes
+  name + amount only.
+- `GET /bonuses` + `POST /bonuses/{key}/claim` — daily/one_time/milestone bonuses
+  (`config custom.bonuses`, `BonusController`); claims are idempotent ledger entries
+  (`ref_type 'bonus'`, `ref_id` = 0 or YYYYMMDD).
+- `GET /me/referral` — code + share URL + stats (`ReferralController`/`ReferralService`).
+  Register accepts `?ref=CODE` (`referred_by`); the referrer is paid `config
+  custom.referral.bonus_coins` on the referred user's first approved reward (credited from
+  `Admin\RewardsController::approve` → `ReferralService::creditReferrer`, idempotent).
+
 ## Data model (`wp_ro_*`)
 
-`users`, `sessions`, `password_resets`, `login_attempts`, `providers`, `provider_callbacks`,
-`offers`, `clicked`, `callbacks`, `rewards`, `coin_ledger`, `payouts`, `redemptions`,
-`support_requests`, `support_messages`. Money is integer minor units; coins are integers.
+`users` (incl. `referral_code`, `referred_by`), `sessions`, `password_resets`,
+`login_attempts`, `providers`, `provider_callbacks`, `offers`, `clicked`, `callbacks`,
+`rewards`, `coin_ledger`, `payouts`, `redemptions`, `wheel_spins`, `support_requests`,
+`support_messages`. Money is integer minor units; coins are integers.
 
 ## Working on this
 
-- **Build**: `npm run build` (or `npm run dev`). **Lint**: `npm run lint` (JS, ~slow, ESLint
-  type-aware) + `npm run lint:style`. **Tests**: `npm test` (jest). Auto-fix JS style with
-  `npx wp-scripts lint-js resources/ --fix` (the WP prettier config is strict).
-- **Activate / migrate**: `wp plugin activate simple-reward-offerwall` (runs migrations).
+- **Build**: user app (Vite) → `npm run build:user` (dev server: `npm run dev:user`); staff
+  apps (webpack) → `npm run build` (or `npm run dev`). The `/reward` PHP takeover reads the
+  Vite manifest, so a rebuilt user bundle is picked up without touching PHP.
+- **Lint**: `npm run lint` (staff JS, ~slow, ESLint type-aware, scoped to `resources/assets`)
+  + `npm run lint:style`. **Tests**: `npm test` (jest). Auto-fix JS style with
+  `npx wp-scripts lint-js resources/assets/ --fix` (the WP prettier config is strict).
+  The Vite app typechecks via `npx tsc -p resources/apps/user/tsconfig.json --noEmit`.
+- **Activate / migrate**: `wp plugin activate simple-reward-offerwall` (runs migrations +
+  flushes the `/reward` rewrite). In dev, re-run migrations with a
+  `wp plugin deactivate && wp plugin activate` cycle; `wp rewrite flush` alone re-registers
+  the rewrite.
 - **Staff accounts**: `wp simple-ro make-admin --email= --password= [--type=admin|support]`
   (`plugin/Providers/CliServiceProvider.php`).
 - **Verify** REST over HTTP with curl; on a local Herd/Valet site the cert is self-signed so

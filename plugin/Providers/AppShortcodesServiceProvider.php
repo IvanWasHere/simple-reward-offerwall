@@ -6,14 +6,16 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
+use SimpleRO\Services\SpaBoot;
 use SimpleRO\WPBones\Support\ServiceProvider;
 
 /**
- * Registers the three front-end SPA shortcodes and enqueues their built bundles.
+ * Registers the staff front-end SPA shortcodes and enqueues their built bundles.
  *
- *   [simple_ro_user_app]     → public/apps/user-app.js
  *   [simple_ro_admin_app]    → public/apps/admin-app.js
  *   [simple_ro_support_app]  → public/apps/support-app.js
+ *
+ * (The user app is served at /reward by SpaRouteServiceProvider, not a shortcode.)
  *
  * Each handler enqueues the @wordpress/scripts bundle (deps/version read from the
  * generated .asset.php), localizes the SimpleRO boot object (REST base, cookie /
@@ -24,7 +26,8 @@ class AppShortcodesServiceProvider extends ServiceProvider
 {
   /** @var array<string,array{app:string,root:string}> shortcode => app config */
   private array $apps = [
-    'simple_ro_user_app'    => ['app' => 'user-app', 'role' => 'user'],
+    // The user app moved to the /reward template takeover (SpaRouteServiceProvider);
+    // only the staff apps are shortcode-hosted now.
     'simple_ro_admin_app'   => ['app' => 'admin-app', 'role' => 'admin'],
     'simple_ro_support_app' => ['app' => 'support-app', 'role' => 'support'],
   ];
@@ -64,22 +67,8 @@ class AppShortcodesServiceProvider extends ServiceProvider
       wp_enqueue_style($app, $plugin->apps . '/' . $app . '.css', [], $ver);
     }
 
-    wp_localize_script($app, 'SimpleRO', $this->bootData($role));
+    wp_localize_script($app, 'SimpleRO', SpaBoot::data($role));
 
     return '<div id="simple-ro-' . esc_attr($role) . '-root" class="simple-ro-app"></div>';
-  }
-
-  private function bootData(string $role): array
-  {
-    $plugin = $this->plugin;
-
-    return [
-      'restBase'   => esc_url_raw(rtrim(rest_url('simple-ro/v1'), '/')),
-      'app'        => $role,
-      'cookieCsrf' => $plugin->config('custom.auth.cookie_csrf', 'ro_csrf'),
-      'csrfHeader' => $plugin->config('custom.auth.csrf_header', 'X-RO-CSRF'),
-      'pages'      => $plugin->config('custom.pages', []),
-      'homeUrl'    => esc_url_raw(home_url('/')),
-    ];
   }
 }

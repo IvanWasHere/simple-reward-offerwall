@@ -85,6 +85,15 @@ Route::get('/payouts', 'SimpleRO\API\User\RedemptionsController@catalog', $user)
 Route::post('/redemptions', 'SimpleRO\API\User\RedemptionsController@store', $user);
 Route::get('/me/redemptions', 'SimpleRO\API\User\RedemptionsController@mine', $user);
 
+// Engagement: surveys, daily wheel, leaderboard, bonuses, referral.
+Route::get('/surveys', 'SimpleRO\API\User\SurveysController@index', $user);
+Route::get('/wheel', 'SimpleRO\API\User\WheelController@show', $user);
+Route::post('/wheel/spin', 'SimpleRO\API\User\WheelController@spin', $user);
+Route::get('/leaderboard', 'SimpleRO\API\User\LeaderboardController@index', $user);
+Route::get('/bonuses', 'SimpleRO\API\User\BonusController@index', $user);
+Route::post('/bonuses/(?P<key>[a-z0-9_]+)/claim', 'SimpleRO\API\User\BonusController@claim', $user);
+Route::get('/me/referral', 'SimpleRO\API\User\ReferralController@show', $user);
+
 /*
 |--------------------------------------------------------------------------
 | Support tickets

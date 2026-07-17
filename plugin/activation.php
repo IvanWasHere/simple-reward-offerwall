@@ -10,13 +10,16 @@ if (!defined('ABSPATH')) {
 |--------------------------------------------------------------------------
 |
 | Runs on activation (after config/options delta and BEFORE the migrations in
-| database/migrations/*.php are included by the framework). We use it to make
-| sure the three front-end SPA pages exist, each hosting its shortcode.
+| database/migrations/*.php are included by the framework). We use it to:
+|   1. make sure the staff SPA pages exist, each hosting its shortcode, and
+|   2. register + flush the /reward rewrite rule for the user SPA takeover
+|      (SpaRouteServiceProvider serves it; the rule must exist at flush time).
+|
+| The user app is NOT a page — it takes over the WordPress template at /reward.
 |
 */
 
 $simple_ro_pages = [
-  'user'    => ['slug' => SimpleRO()->config('custom.pages.user', 'dashboard'), 'title' => 'Offerwall Dashboard', 'shortcode' => '[simple_ro_user_app]'],
   'admin'   => ['slug' => SimpleRO()->config('custom.pages.admin', 'offerwall-admin'), 'title' => 'Offerwall Admin', 'shortcode' => '[simple_ro_admin_app]'],
   'support' => ['slug' => SimpleRO()->config('custom.pages.support', 'offerwall-support'), 'title' => 'Offerwall Support', 'shortcode' => '[simple_ro_support_app]'],
 ];
@@ -35,3 +38,8 @@ foreach ($simple_ro_pages as $simple_ro_page) {
     'post_type'    => 'page',
   ]);
 }
+
+// User SPA takeover: register the rewrite rule, then flush so /reward resolves.
+$simple_ro_reward_slug = SimpleRO()->config('custom.reward_slug', 'reward');
+add_rewrite_rule('^' . $simple_ro_reward_slug . '(?:/.*)?/?$', 'index.php?simple_ro_spa=user', 'top');
+flush_rewrite_rules();

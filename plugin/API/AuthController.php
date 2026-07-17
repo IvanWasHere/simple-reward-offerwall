@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) {
 }
 
 use SimpleRO\API\Auth\Guard;
+use SimpleRO\Services\ReferralService;
 use SimpleRO\WPBones\Routing\API\RestController;
 
 /**
@@ -54,6 +55,8 @@ class AuthController extends RestController
       return $this->responseError('ro_email_taken', __('An account with that email already exists.', 'simple-reward-offerwall'), 409);
     }
 
+    $referredBy = ReferralService::referrerIdForCode((string) $this->request->get_param('ref'));
+
     $now = gmdate('Y-m-d H:i:s');
     $ok = $wpdb->insert(
       $users,
@@ -64,10 +67,12 @@ class AuthController extends RestController
         'type'             => 'user',
         'status'           => 'active',
         'display_name'     => $displayName,
+        'referral_code'    => ReferralService::generateCode(),
+        'referred_by'      => $referredBy,
         'created_at'       => $now,
         'updated_at'       => $now,
       ],
-      ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
+      ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s']
     );
 
     if (!$ok) {
@@ -311,8 +316,9 @@ class AuthController extends RestController
 
   private function sendResetEmail(string $email, string $token): void
   {
-    $slug = trim((string) SimpleRO()->config('custom.pages.user', 'dashboard'), '/');
-    $url = home_url('/' . $slug . '/') . '#/reset?token=' . rawurlencode($token);
+    // The user app lives at the /reward takeover; AuthScreens reads ?token=.
+    $slug = trim((string) SimpleRO()->config('custom.reward_slug', 'reward'), '/');
+    $url = home_url('/' . $slug . '/') . '?token=' . rawurlencode($token);
 
     $subject = __('Reset your password', 'simple-reward-offerwall');
     $message = sprintf(

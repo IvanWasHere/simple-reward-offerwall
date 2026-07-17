@@ -8,6 +8,7 @@ if (!defined('ABSPATH')) {
 
 use SimpleRO\API\Auth\Guard;
 use SimpleRO\Services\LedgerService;
+use SimpleRO\Services\ReferralService;
 use SimpleRO\WPBones\Routing\API\RestController;
 
 /**
@@ -75,6 +76,9 @@ class RewardsController extends RestController
     );
 
     LedgerService::entry((int) $reward->user_id, (int) $reward->coins_value, 'reward_approved', 'reward', $id);
+
+    // Pay the referrer (idempotent — at most once per referred user).
+    ReferralService::creditReferrer((int) $reward->user_id);
 
     $wpdb->query('COMMIT');
 

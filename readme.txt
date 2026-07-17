@@ -1,7 +1,6 @@
-=== Simple Reward Offerwall ReactJS Boilerplate ===
-Contributors: gfazioli
-Donate link: https://wpbones.com/
-Tags: template, wpbones
+=== Simple Reward Offerwall  ===
+Contributors: ivanwashere
+Tags: reward, offferwall
 Requires at least: 6.2
 Tested up to: 6.5
 Stable tag: 2.0.0
