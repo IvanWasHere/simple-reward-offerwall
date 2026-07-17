@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Backgrounds } from './components/Backgrounds';
 import { Navbar } from './components/Navbar';
 import { BalanceBar } from './components/BalanceBar';
@@ -12,10 +12,14 @@ import { useApiData } from './hooks/useApiData';
 import { useTheme } from './lib/theme';
 import { config } from './lib/config';
 import { EarnPage } from './pages/EarnPage';
+import { OfferwallView } from './pages/OfferwallView';
 import { OffersPage } from './pages/OffersPage';
 import { SurveysPage } from './pages/SurveysPage';
 import { WithdrawPage } from './pages/WithdrawPage';
-import { BonusPage } from './pages/BonusPage';
+import { LeaderboardPage } from './pages/bonus/LeaderboardPage';
+import { WheelPage } from './pages/bonus/WheelPage';
+import { RewardsPage } from './pages/bonus/RewardsPage';
+import { ReferralPage } from './pages/bonus/ReferralPage';
 import type { UiOffer } from './lib/types';
 
 function basename(): string {
@@ -60,10 +64,15 @@ function AuthedApp() {
         <BalanceBar balance={balance} completed={rewardCount} />
         <Routes>
           <Route path="/" element={<EarnPage onSelectOffer={setSelected} />} />
+          <Route path="/offerwall/:id" element={<OfferwallView />} />
           <Route path="/offers" element={<OffersPage onSelectOffer={setSelected} />} />
           <Route path="/surveys" element={<SurveysPage />} />
           <Route path="/withdraw" element={<WithdrawPage />} />
-          <Route path="/bonus" element={<BonusPage />} />
+          <Route path="/bonus" element={<Navigate to="/bonus/leaderboard" replace />} />
+          <Route path="/bonus/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/bonus/wheel" element={<WheelPage />} />
+          <Route path="/bonus/rewards" element={<RewardsPage />} />
+          <Route path="/bonus/referral" element={<ReferralPage />} />
           <Route path="*" element={<EarnPage onSelectOffer={setSelected} />} />
         </Routes>
       </main>

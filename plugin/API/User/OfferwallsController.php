@@ -23,13 +23,33 @@ class OfferwallsController extends RestController
     $p = $wpdb->prefix . 'ro_providers';
 
     $rows = $wpdb->get_results(
-      "SELECT id, name, type, unique_provider_hash
+      "SELECT id, name, type, unique_provider_hash, config
          FROM {$p}
         WHERE status = 'active' AND type IN ('iframe', 'offerwall_api')
         ORDER BY name ASC"
     );
 
-    return $this->response(['offerwalls' => $rows]);
+    // wall_placement (admin setting, stored in provider config): where the
+    // offerwall button surfaces on the user Earn page — 'hot', 'all', or 'none'
+    // (hidden). Only 'iframe' providers open in an <iframe>; 'offerwall_api'
+    // providers are JSON feeds and carry type so the client can tell them apart.
+    $out = [];
+    foreach ($rows ?: [] as $r) {
+      $cfg = json_decode((string) $r->config, true);
+      $placement = (is_array($cfg) && !empty($cfg['wall_placement'])) ? (string) $cfg['wall_placement'] : 'all';
+      if ($placement === 'none') {
+        continue;
+      }
+      $out[] = [
+        'id'        => (int) $r->id,
+        'name'      => $r->name,
+        'type'      => $r->type,
+        'hash'      => $r->unique_provider_hash,
+        'placement' => in_array($placement, ['hot', 'all'], true) ? $placement : 'all',
+      ];
+    }
+
+    return $this->response(['offerwalls' => $out]);
   }
 
   /**

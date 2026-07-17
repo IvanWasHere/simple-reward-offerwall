@@ -36,6 +36,13 @@ return [
   // (SpaRouteServiceProvider) — NOT a shortcode page.
   'reward_slug' => 'reward',
 
+  // Default for the site-level external-id prefix. Admins override this at runtime
+  // via PUT /admin/settings (stored in the simple_ro_settings option). The
+  // {external_id} iframe macro expands to "<prefix>-<user_id>-<user_hash>".
+  'external_id' => [
+    'prefix' => '',
+  ],
+
   // Lucky Wheel (WheelController). One free spin per UTC day. The server picks a
   // segment by weight and credits `coins` — the client never asserts a prize.
   'wheel' => [

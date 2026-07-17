@@ -164,6 +164,16 @@ class ProvidersController extends RestController
       return $this->responseError('ro_invalid', __('An iframe provider needs a URL.', 'simple-reward-offerwall'), 422);
     }
 
+    // wall_placement is a first-class admin setting persisted inside config:
+    // 'hot' (Hot Walls + All Walls), 'all' (All Walls only), 'none' (hidden).
+    $config = $this->asObject($this->request->get_param('config'));
+    $placement = (string) $this->request->get_param('wall_placement');
+    if (in_array($placement, ['hot', 'all', 'none'], true)) {
+      $config['wall_placement'] = $placement;
+    } elseif (!isset($config['wall_placement'])) {
+      $config['wall_placement'] = 'all';
+    }
+
     return [
       'name'       => $name,
       'type'       => $type,
@@ -173,7 +183,7 @@ class ProvidersController extends RestController
       'api_key'    => sanitize_text_field((string) $this->request->get_param('api_key')),
       'api_secret' => sanitize_text_field((string) $this->request->get_param('api_secret')),
       'coin_rate'  => max(0, (float) $this->request->get_param('coin_rate')),
-      'config'     => wp_json_encode($this->asObject($this->request->get_param('config'))),
+      'config'     => wp_json_encode($config),
       'status'     => $status,
     ];
   }
@@ -203,6 +213,7 @@ class ProvidersController extends RestController
     if (!$row) {
       return [];
     }
+    $config = json_decode((string) $row->config, true);
     return [
       'id'             => (int) $row->id,
       'hash'           => $row->unique_provider_hash,
@@ -214,7 +225,8 @@ class ProvidersController extends RestController
       'apiKey'         => $row->api_key,
       'hasApiSecret'   => $row->api_secret !== '',
       'coinRate'       => (float) $row->coin_rate,
-      'config'         => json_decode((string) $row->config, true) ?: (object) [],
+      'config'         => is_array($config) ? $config : (object) [],
+      'wallPlacement'  => (is_array($config) && !empty($config['wall_placement'])) ? $config['wall_placement'] : 'all',
       'status'         => $row->status,
       'callbackCount'  => isset($row->callback_count) ? (int) $row->callback_count : null,
       'createdAt'      => $row->created_at,

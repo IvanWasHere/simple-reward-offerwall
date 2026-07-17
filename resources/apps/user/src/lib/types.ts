@@ -54,6 +54,14 @@ export interface UiOffer {
   rating: string | null;
 }
 
+export interface Offerwall {
+  id: number;
+  name: string;
+  type: 'iframe' | 'offerwall_api';
+  hash: string;
+  placement: 'hot' | 'all';
+}
+
 export interface Payout {
   id: number;
   name: string;

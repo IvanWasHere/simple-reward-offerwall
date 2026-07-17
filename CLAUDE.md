@@ -39,8 +39,13 @@ Namespace `SimpleRO` (PSR-4 → `plugin/`). REST API at `/wp-json/simple-ro/v1`.
     `resources/apps/user/src/lib/api.ts`; staff apps use `resources/assets/apps/shared/api.ts`.
 - **Providers are adapters.** `plugin/Providers/Contracts/ProviderAdapter.php` +
   `Adapters/{Iframe,OfferwallApi,Static}Adapter.php` + `ProviderAdapterFactory`. Types:
-  `iframe` (offerwall in an `<iframe>`, per-user URL via macro substitution —
-  `Services/MacroBuilder.php`), `offerwall_api` (live JSON proxy, 60s transient cache),
+  `iframe` (offerwall in an `<iframe>`; the admin's provider URL carries inline
+  macro tokens `{user_id}` / `{user_hash}` / `{session_id}` / `{adslot_id}` /
+  `{external_id}` that `IframeAdapter`+`Services/MacroBuilder::substitute` replace
+  URL-encoded per user — e.g. `…&sid={user_id}` → `…&sid=123`. `{external_id}` =
+  `<prefix>-<user_id>-<user_hash>`, where the site-level prefix is set by admins via
+  `GET|PUT /admin/settings` — `Services/Settings.php`, stored in the `simple_ro_settings`
+  option), `offerwall_api` (live JSON proxy, 60s transient cache),
   `static_api` (pulled hourly into `ro_offers` — `Services/OfferIngestionService.php` +
   `Providers/IngestOffersSchedule.php`, cron hook `simple_ro_ingest_offers`).
 - **Callbacks** (`plugin/API/CallbackController.php`): `GET|POST /callback/{hash}` selects a
@@ -78,6 +83,12 @@ Beyond offers/clicks/balance/payouts, the user API also serves the RewardVault
 - `GET /bonuses` + `POST /bonuses/{key}/claim` — daily/one_time/milestone bonuses
   (`config custom.bonuses`, `BonusController`); claims are idempotent ledger entries
   (`ref_type 'bonus'`, `ref_id` = 0 or YYYYMMDD).
+- `GET /offerwalls` — `iframe`/`offerwall_api` providers with a `placement` field
+  (`OfferwallsController`). Admins set `wall_placement` per provider (`'hot'` → Hot Walls +
+  All Walls, `'all'` → All Walls only, `'none'` → hidden), persisted in provider `config`
+  by `Admin\ProvidersController`. The Earn page renders **offerwall buttons** for `iframe`
+  providers, bucketed by placement; clicking opens the per-user macro URL
+  (`GET /offerwalls/{id}/url`) inside the in-app iframe view (`/reward/offerwall/:id`).
 - `GET /me/referral` — code + share URL + stats (`ReferralController`/`ReferralService`).
   Register accepts `?ref=CODE` (`referred_by`); the referrer is paid `config
   custom.referral.bonus_coins` on the referred user's first approved reward (credited from
