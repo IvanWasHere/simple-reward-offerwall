@@ -81,6 +81,8 @@ Route::get('/offerwalls/(?P<id>\d+)/url', 'SimpleRO\API\User\OfferwallsControlle
 Route::get('/me/balance', 'SimpleRO\API\User\AccountController@balance', $user);
 Route::get('/me/ledger', 'SimpleRO\API\User\AccountController@ledger', $user);
 Route::get('/me/rewards', 'SimpleRO\API\User\AccountController@rewards', $user);
+Route::get('/me/clicks', 'SimpleRO\API\User\AccountController@clicks', $user);
+Route::put('/me/profile', 'SimpleRO\API\User\AccountController@updateProfile', $user);
 Route::get('/payouts', 'SimpleRO\API\User\RedemptionsController@catalog', $user);
 Route::post('/redemptions', 'SimpleRO\API\User\RedemptionsController@store', $user);
 Route::get('/me/redemptions', 'SimpleRO\API\User\RedemptionsController@mine', $user);
@@ -141,6 +143,7 @@ Route::put('/admin/offers/(?P<id>\d+)', 'SimpleRO\API\Admin\OffersController@upd
 
 Route::get('/admin/users', 'SimpleRO\API\Admin\UsersController@index', $admin);
 Route::get('/admin/users/(?P<id>\d+)', 'SimpleRO\API\Admin\UsersController@show', $admin);
+Route::get('/admin/users/(?P<id>\d+)/clicks', 'SimpleRO\API\Admin\UsersController@clicks', $admin);
 Route::put('/admin/users/(?P<id>\d+)', 'SimpleRO\API\Admin\UsersController@update', $admin);
 
 Route::get('/admin/stats', 'SimpleRO\API\Admin\StatsController@index', $admin);

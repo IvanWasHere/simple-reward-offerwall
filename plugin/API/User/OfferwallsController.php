@@ -53,8 +53,12 @@ class OfferwallsController extends RestController
   }
 
   /**
-   * Build the per-user URL for an iframe offerwall and record the click so an
-   * incoming postback can be correlated (session_id macro).
+   * Build the per-user URL for an iframe offerwall.
+   *
+   * Offerwall opens are NOT recorded as clicks — an offerwall leads to the
+   * provider's own site (many offers), we don't offer support for it, and postback
+   * correlation is by the user_id/user_hash/external_id URL macros, not a stored
+   * click nonce. Only real offers (ro_offers, via ClicksController) are tracked.
    */
   public function url()
   {
@@ -75,19 +79,9 @@ class OfferwallsController extends RestController
       return $this->responseError('ro_unsupported', __('This offerwall type is not opened by URL.', 'simple-reward-offerwall'), 400);
     }
 
+    // A per-open nonce is still passed for the optional {session_id} macro, but is
+    // no longer persisted (offerwall opens are untracked).
     $nonce = bin2hex(random_bytes(16));
-    $wpdb->insert(
-      $wpdb->prefix . 'ro_clicked',
-      [
-        'provider_id'   => (int) $provider->id,
-        'offer_id'      => 0,
-        'user_id'       => (int) $user->id,
-        'session_nonce' => $nonce,
-        'created_at'    => gmdate('Y-m-d H:i:s'),
-        'updated_at'    => gmdate('Y-m-d H:i:s'),
-      ],
-      ['%d', '%d', '%d', '%s', '%s', '%s']
-    );
 
     // Build the per-user iframe URL via the provider adapter (macro substitution).
     // The template is stored raw; after substitution (values urlencoded) it is a

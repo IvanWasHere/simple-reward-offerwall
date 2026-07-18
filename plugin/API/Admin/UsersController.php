@@ -149,6 +149,54 @@ class UsersController extends RestController
     )))]);
   }
 
+  /**
+   * All of a user's recorded clicks (most recent first). Includes offer clicks
+   * (offer_id>0, resolved to the offer name) and any legacy offerwall opens
+   * (offer_id=0). Offerwall opens are no longer recorded, but historical rows
+   * remain visible here.
+   */
+  public function clicks()
+  {
+    global $wpdb;
+    $id = (int) $this->request->get_param('id');
+
+    if (!$wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}ro_users WHERE id = %d", $id))) {
+      return $this->responseError('ro_not_found', __('User not found.', 'simple-reward-offerwall'), 404);
+    }
+
+    $c = $wpdb->prefix . 'ro_clicked';
+    $o = $wpdb->prefix . 'ro_offers';
+    $p = $wpdb->prefix . 'ro_providers';
+
+    $rows = $wpdb->get_results($wpdb->prepare(
+      "SELECT cl.id, cl.offer_id, cl.provider_offer_id, cl.target_url, cl.created_at,
+              o.name AS offer_name, p.name AS provider_name
+         FROM {$c} cl
+         LEFT JOIN {$o} o ON o.id = cl.offer_id
+         LEFT JOIN {$p} p ON p.id = cl.provider_id
+        WHERE cl.user_id = %d
+        ORDER BY cl.created_at DESC
+        LIMIT 500",
+      $id
+    ));
+
+    $clicks = array_map(function ($r) {
+      $isOffer = (int) $r->offer_id > 0;
+      return [
+        'id'              => (int) $r->id,
+        'offerId'         => (int) $r->offer_id,
+        'kind'            => $isOffer ? 'offer' : 'offerwall',
+        'offerName'       => $r->offer_name ?: ($isOffer ? __('(removed offer)', 'simple-reward-offerwall') : __('Offerwall visit', 'simple-reward-offerwall')),
+        'providerName'    => $r->provider_name ?: '—',
+        'providerOfferId' => $r->provider_offer_id,
+        'targetUrl'       => $r->target_url,
+        'clickedAt'       => $r->created_at,
+      ];
+    }, $rows ?: []);
+
+    return $this->response(['clicks' => $clicks]);
+  }
+
   private function present($row): array
   {
     if (!$row) {

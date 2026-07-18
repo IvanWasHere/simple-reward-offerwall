@@ -16,6 +16,7 @@ import { OfferwallView } from './pages/OfferwallView';
 import { OffersPage } from './pages/OffersPage';
 import { SurveysPage } from './pages/SurveysPage';
 import { WithdrawPage } from './pages/WithdrawPage';
+import { SupportPage } from './pages/SupportPage';
 import { LeaderboardPage } from './pages/bonus/LeaderboardPage';
 import { WheelPage } from './pages/bonus/WheelPage';
 import { RewardsPage } from './pages/bonus/RewardsPage';
@@ -68,6 +69,7 @@ function AuthedApp() {
           <Route path="/offers" element={<OffersPage onSelectOffer={setSelected} />} />
           <Route path="/surveys" element={<SurveysPage />} />
           <Route path="/withdraw" element={<WithdrawPage />} />
+          <Route path="/support" element={<SupportPage />} />
           <Route path="/bonus" element={<Navigate to="/bonus/leaderboard" replace />} />
           <Route path="/bonus/leaderboard" element={<LeaderboardPage />} />
           <Route path="/bonus/wheel" element={<WheelPage />} />
