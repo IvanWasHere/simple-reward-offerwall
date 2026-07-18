@@ -76,11 +76,15 @@ Beyond offers/clicks/balance/payouts, the user API also serves the RewardVault
 "Bonus"/"Surveys" surfaces (all under `Guard::role('user')`):
 - `GET /surveys` — offers from providers whose `config` JSON has `{"survey":true}`
   (`SurveysController`), same normalized shape as `/offers`.
-- `GET /wheel` + `POST /wheel/spin` — daily Lucky Wheel (`WheelController`). Server picks a
-  segment by weight (`config custom.wheel.segments`) and credits coins; one spin per UTC day
-  via `UNIQUE(user_id, spin_date)` on `ro_wheel_spins`. Client never asserts the prize.
-- `GET /leaderboard` — top 10 by positive ledger deltas (`LeaderboardController`); exposes
-  name + amount only.
+- `GET /wheel` + `POST /wheel/spin` — Lucky Wheel (`WheelController`). Server picks a segment
+  by weight (`config custom.wheel.segments`) and credits coins; **one spin per 7-day rolling
+  window** (checks the last spin's `created_at`; `nextSpinAt` tells the client when it reopens).
+  Client never asserts the prize.
+- `GET /leaderboard?period=today|week|month` — **top 25** for the period
+  (`LeaderboardController`). Reads denormalised `earned_today/earned_week/earned_month` counters
+  on `ro_users` (maintained by `LedgerService::addEarning` on every positive credit, reset when
+  the period marker `earn_day`/`earn_week`(last Sunday)/`earn_month` rolls over) — **no
+  ledger SUM/GROUP BY**. Exposes name + amount only.
 - `GET /bonuses` + `POST /bonuses/{key}/claim` — daily/one_time/milestone bonuses
   (`config custom.bonuses`, `BonusController`); claims are idempotent ledger entries
   (`ref_type 'bonus'`, `ref_id` = 0 or YYYYMMDD).

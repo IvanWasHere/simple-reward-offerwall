@@ -12,7 +12,8 @@ interface WheelSegment {
 interface WheelState {
   segments: WheelSegment[];
   canSpin: boolean;
-  todaySpin: { coins: number; segmentIndex: number } | null;
+  lastSpin: { coins: number } | null;
+  nextSpinAt: string | null;
 }
 
 function cssVar(name: string, fallback: string): string {
@@ -139,6 +140,11 @@ export function LuckyWheel() {
   if (loading) return <Loading label="Loading wheel…" />;
 
   const alreadySpun = !data?.canSpin;
+  const nextSpin = data?.nextSpinAt ? new Date(data.nextSpinAt) : null;
+  const nextSpinLabel =
+    nextSpin && !isNaN(nextSpin.getTime())
+      ? nextSpin.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+      : null;
 
   return (
     <div className="wheel-container">
@@ -148,16 +154,22 @@ export function LuckyWheel() {
         <div className="wheel-center">SPIN</div>
       </div>
       <button className="spin-btn" disabled={spinning || alreadySpun} onClick={spin}>
-        {spinning ? 'Spinning…' : alreadySpun ? 'Come back tomorrow' : 'Spin the Wheel'}
+        {spinning
+          ? 'Spinning…'
+          : alreadySpun
+            ? nextSpinLabel
+              ? `Next spin ${nextSpinLabel}`
+              : 'Come back later'
+            : 'Spin the Wheel'}
       </button>
       {result !== null && !spinning && (
         <div className="spin-result">
           You won <strong style={{ color: 'var(--accent)' }}>+{result} coins</strong>!
         </div>
       )}
-      {result === null && alreadySpun && data?.todaySpin && (
+      {result === null && alreadySpun && data?.lastSpin && (
         <div className="spin-result">
-          Today you won <strong style={{ color: 'var(--accent)' }}>+{data.todaySpin.coins} coins</strong>
+          You won <strong style={{ color: 'var(--accent)' }}>+{data.lastSpin.coins} coins</strong> this week — one spin every 7 days.
         </div>
       )}
     </div>

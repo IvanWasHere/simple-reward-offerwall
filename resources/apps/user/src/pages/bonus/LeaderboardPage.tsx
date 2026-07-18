@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Loading, EmptyState } from '../../components/States';
 import { useApiData } from '../../hooks/useApiData';
 import { formatCoins } from '../../lib/format';
@@ -9,8 +10,15 @@ interface LeaderRow {
   avatar: string;
 }
 
+const PERIODS = [
+  { key: 'today', label: 'Today' },
+  { key: 'week', label: 'This Week' },
+  { key: 'month', label: 'This Month' },
+] as const;
+
 export function LeaderboardPage() {
-  const { data, loading } = useApiData<{ leaderboard: LeaderRow[] }>('/leaderboard');
+  const [period, setPeriod] = useState<(typeof PERIODS)[number]['key']>('week');
+  const { data, loading } = useApiData<{ leaderboard: LeaderRow[] }>(`/leaderboard?period=${period}`);
   const rows = data?.leaderboard ?? [];
 
   return (
@@ -19,10 +27,23 @@ export function LeaderboardPage() {
         <i className="fa-solid fa-ranking-star" />
         Leaderboard
       </div>
+
+      <div className="filter-bar">
+        {PERIODS.map((p) => (
+          <button
+            key={p.key}
+            className={'filter-btn' + (period === p.key ? ' active' : '')}
+            onClick={() => setPeriod(p.key)}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <Loading />
       ) : rows.length === 0 ? (
-        <EmptyState icon="fa-ranking-star" message="No rankings yet." />
+        <EmptyState icon="fa-ranking-star" message="No earners in this period yet." />
       ) : (
         <div className="wall-section" style={{ overflowX: 'auto', padding: '4px 20px' }}>
           <table className="lb-table">

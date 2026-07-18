@@ -20,15 +20,20 @@ use SimpleRO\WPBones\Routing\API\RestController;
  */
 class WheelController extends RestController
 {
+  /** One spin per this many days (rolling cooldown from the last spin). */
+  private const COOLDOWN_DAYS = 7;
+
   public function show()
   {
     $user = Guard::user($this->request);
-    $today = $this->todaySpin((int) $user->id);
+    $last = $this->lastSpin((int) $user->id);
+    $cooldownEnds = $this->cooldownEnds($last);
 
     return $this->response([
-      'segments' => $this->publicSegments(),
-      'canSpin'  => $today === null,
-      'todaySpin' => $today,
+      'segments'   => $this->publicSegments(),
+      'canSpin'    => time() >= $cooldownEnds,
+      'lastSpin'   => $last ? ['coins' => $last['coins']] : null,
+      'nextSpinAt' => time() < $cooldownEnds ? gmdate('c', $cooldownEnds) : null,
     ]);
   }
 
@@ -37,23 +42,28 @@ class WheelController extends RestController
     global $wpdb;
     $user = Guard::user($this->request);
     $userId = (int) $user->id;
-    $date = gmdate('Y-m-d');
 
     $segments = $this->segments();
     if (empty($segments)) {
       return $this->responseError('ro_unavailable', __('The wheel is not configured.', 'simple-reward-offerwall'), 503);
     }
 
+    // Weekly cooldown: block if the last spin was within COOLDOWN_DAYS.
+    $cooldownEnds = $this->cooldownEnds($this->lastSpin($userId));
+    if (time() < $cooldownEnds) {
+      return $this->responseError('ro_already_spun', __('You already spun this week. Come back later!', 'simple-reward-offerwall'), 409);
+    }
+
     $index = $this->weightedPick($segments);
     $coins = (int) $segments[$index]['coins'];
 
-    // Claim today's spin. A duplicate (same user + date) fails the unique key.
+    // spin_date keeps the daily unique index as a same-day race guard.
     $suppress = $wpdb->suppress_errors(true);
     $ok = $wpdb->insert(
       $wpdb->prefix . 'ro_wheel_spins',
       [
         'user_id'       => $userId,
-        'spin_date'     => $date,
+        'spin_date'     => gmdate('Y-m-d'),
         'segment_index' => $index,
         'coins'         => $coins,
         'created_at'    => gmdate('Y-m-d H:i:s'),
@@ -63,7 +73,7 @@ class WheelController extends RestController
     $wpdb->suppress_errors($suppress);
 
     if (!$ok) {
-      return $this->responseError('ro_already_spun', __('You already spun today. Come back tomorrow!', 'simple-reward-offerwall'), 409);
+      return $this->responseError('ro_already_spun', __('You already spun this week. Come back later!', 'simple-reward-offerwall'), 409);
     }
 
     $spinId = (int) $wpdb->insert_id;
@@ -115,15 +125,23 @@ class WheelController extends RestController
     return count($segments) - 1;
   }
 
-  /** @return array{coins:int,segmentIndex:int}|null */
-  private function todaySpin(int $userId): ?array
+  /** The user's most recent spin, or null. @return array{createdAt:string,coins:int}|null */
+  private function lastSpin(int $userId): ?array
   {
     global $wpdb;
     $row = $wpdb->get_row($wpdb->prepare(
-      "SELECT segment_index, coins FROM {$wpdb->prefix}ro_wheel_spins WHERE user_id = %d AND spin_date = %s LIMIT 1",
-      $userId,
-      gmdate('Y-m-d')
+      "SELECT created_at, coins FROM {$wpdb->prefix}ro_wheel_spins WHERE user_id = %d ORDER BY id DESC LIMIT 1",
+      $userId
     ));
-    return $row ? ['coins' => (int) $row->coins, 'segmentIndex' => (int) $row->segment_index] : null;
+    return $row ? ['createdAt' => $row->created_at, 'coins' => (int) $row->coins] : null;
+  }
+
+  /** Unix time when the cooldown from $last expires (0 if never spun). */
+  private function cooldownEnds(?array $last): int
+  {
+    if (!$last) {
+      return 0;
+    }
+    return (int) strtotime($last['createdAt'] . ' UTC') + self::COOLDOWN_DAYS * DAY_IN_SECONDS;
   }
 }

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Backgrounds } from './components/Backgrounds';
 import { Navbar } from './components/Navbar';
-import { BalanceBar } from './components/BalanceBar';
 import { ToastHost } from './components/ToastHost';
 import { OfferDetailModal } from './components/OfferDetailModal';
 import { ProfileModal } from './components/ProfileModal';
@@ -60,9 +59,13 @@ function AuthedApp() {
 
   return (
     <BrowserRouter basename={basename()}>
-      <Navbar theme={theme} onToggleTheme={toggle} onOpenProfile={() => setShowProfile(true)} />
+      <Navbar
+        theme={theme}
+        balance={balance}
+        onToggleTheme={toggle}
+        onOpenProfile={() => setShowProfile(true)}
+      />
       <main className="main-content">
-        <BalanceBar balance={balance} completed={rewardCount} />
         <Routes>
           <Route path="/" element={<EarnPage onSelectOffer={setSelected} />} />
           <Route path="/offerwall/:id" element={<OfferwallView />} />

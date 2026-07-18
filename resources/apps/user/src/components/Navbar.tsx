@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { formatCoins } from '../lib/format';
 import type { Theme } from '../lib/theme';
 
 const LINKS = [
@@ -71,11 +72,12 @@ function BonusDropdown() {
 
 interface NavbarProps {
   theme: Theme;
+  balance: number;
   onToggleTheme: () => void;
   onOpenProfile: () => void;
 }
 
-export function Navbar({ theme, onToggleTheme, onOpenProfile }: NavbarProps) {
+export function Navbar({ theme, balance, onToggleTheme, onOpenProfile }: NavbarProps) {
   const isDark = theme === 'dark';
   return (
     <nav className="navbar">
@@ -104,6 +106,10 @@ export function Navbar({ theme, onToggleTheme, onOpenProfile }: NavbarProps) {
           <button className="nav-profile" aria-label="Profile" onClick={onOpenProfile}>
             <i className="fa-solid fa-user" />
           </button>
+          <div className="nav-coins" title="Your balance">
+            <i className="fa-solid fa-coins" />
+            <span>{formatCoins(balance)}</span>
+          </div>
         </div>
       </div>
     </nav>

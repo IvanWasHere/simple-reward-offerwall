@@ -42,6 +42,42 @@ class LedgerService
     );
     $wpdb->suppress_errors($suppress);
 
+    // Maintain the denormalised leaderboard counters on a genuine new credit.
+    if ($ok && $delta > 0) {
+      self::addEarning($userId, $delta);
+    }
+
     return (bool) $ok;
+  }
+
+  /**
+   * Add to a user's today / this-week (since Sunday) / this-month earning
+   * counters in a single UPDATE, resetting any counter whose period marker has
+   * rolled over. Powers the leaderboard without SUM()-ing the ledger.
+   */
+  private static function addEarning(int $userId, int $delta): void
+  {
+    global $wpdb;
+    $t = $wpdb->prefix . 'ro_users';
+
+    $now = time();
+    $today = gmdate('Y-m-d', $now);
+    $weekStart = gmdate('Y-m-d', $now - ((int) gmdate('w', $now)) * DAY_IN_SECONDS); // last Sunday (UTC)
+    $month = gmdate('Y-m', $now);
+
+    $wpdb->query($wpdb->prepare(
+      "UPDATE {$t} SET
+         earned_today = (CASE WHEN earn_day = %s THEN earned_today ELSE 0 END) + %d,
+         earn_day = %s,
+         earned_week = (CASE WHEN earn_week = %s THEN earned_week ELSE 0 END) + %d,
+         earn_week = %s,
+         earned_month = (CASE WHEN earn_month = %s THEN earned_month ELSE 0 END) + %d,
+         earn_month = %s
+       WHERE id = %d",
+      $today, $delta, $today,
+      $weekStart, $delta, $weekStart,
+      $month, $delta, $month,
+      $userId
+    ));
   }
 }
