@@ -20,23 +20,24 @@ Namespace `SimpleRO` (PSR-4 → `plugin/`). REST API at `/wp-json/simple-ro/v1`.
   `permission_callback` = `Guard::role('user'|'admin'|'support')` / `Guard::authenticated()`
   (`admin` is a superset of `support`). Public: `health`, `auth/*`, `callback/{hash}`.
 - **Three SPAs, two toolchains.**
-  - **User app** ("RewardVault") is a **Vite + React** app in `resources/apps/user/`
+  - **User + admin apps** are **Vite + React** apps in `resources/apps/{user,admin}/`
     (source lives OUTSIDE `resources/assets/apps` so webpack's `autoEntries` ignores it),
-    built to `public/apps/user/` with a Vite manifest. It is served at **`/reward`** by a
-    **full template takeover**: `plugin/Providers/SpaRouteServiceProvider.php` registers a
-    `^reward(/.*)?/?$` rewrite rule, and on `template_redirect` renders a bare HTML shell
-    (no theme header/footer) that reads `.vite/manifest.json` and mounts the bundle.
-    Client routing is `react-router` (basename `/reward`); auth is client-gated (the SPA
-    shows login/register when `/auth/me` → 401). The `/reward` rewrite is flushed on
-    activation (`plugin/activation.php`).
-  - **Admin & support apps** remain `@wordpress/scripts` bundles in
-    `resources/assets/apps/{admin,support}-app/index.tsx`, built to `public/apps/<name>.js`,
-    mounted via shortcodes (`[simple_ro_admin_app]` / `_support_app`) from
-    `plugin/Providers/AppShortcodesServiceProvider.php` on the auto-created
-    `/offerwall-admin` / `/offerwall-support` pages.
-  - The `window.SimpleRO` boot object (REST base, cookie/CSRF names, URLs) is shared by
-    both via `plugin/Services/SpaBoot.php`. Shared REST client: the user app has its own
-    `resources/apps/user/src/lib/api.ts`; staff apps use `resources/assets/apps/shared/api.ts`.
+    built to `public/apps/{user,admin}/` with Vite manifests. Both are served by a **full
+    template takeover**: `plugin/Providers/SpaRouteServiceProvider.php` iterates a slug→app
+    registry (`/reward`→user, `/offerwall-admin`→admin), registers a `^<slug>(/.*)?/?$`
+    rewrite each, and on `template_redirect` renders a bare HTML shell (no theme
+    header/footer) that reads that app's `.vite/manifest.json` and mounts the bundle. Client
+    routing is `react-router` (basename = the slug). Auth is client-gated: the user app
+    shows login/register on `/auth/me` → 401; the admin app additionally rejects non-admin
+    sessions (`user.type !== 'admin'`). Both rewrites are flushed on activation. Slugs are
+    `custom.reward_slug` / `custom.admin_slug`.
+  - **Support app** remains a `@wordpress/scripts` bundle in
+    `resources/assets/apps/support-app/index.tsx`, built to `public/apps/support-app.js`,
+    mounted via the `[simple_ro_support_app]` shortcode on the auto-created
+    `/offerwall-support` page.
+  - The `window.SimpleRO` boot object (REST base, cookie/CSRF names, URLs) is shared by all
+    via `plugin/Services/SpaBoot.php`. REST client: the user + admin apps each have their own
+    `resources/apps/<app>/src/lib/api.ts`; the support app uses `resources/assets/apps/shared/api.ts`.
 - **Providers are adapters.** `plugin/Providers/Contracts/ProviderAdapter.php` +
   `Adapters/{Iframe,OfferwallApi,Static}Adapter.php` + `ProviderAdapterFactory`. Types:
   `iframe` (offerwall in an `<iframe>`; the admin's provider URL carries inline
@@ -103,9 +104,10 @@ Beyond offers/clicks/balance/payouts, the user API also serves the RewardVault
 
 ## Working on this
 
-- **Build**: user app (Vite) → `npm run build:user` (dev server: `npm run dev:user`); staff
-  apps (webpack) → `npm run build` (or `npm run dev`). The `/reward` PHP takeover reads the
-  Vite manifest, so a rebuilt user bundle is picked up without touching PHP.
+- **Build**: user app → `npm run build:user`, admin app → `npm run build:admin` (Vite; dev
+  servers `dev:user` / `dev:admin`); support app (webpack) → `npm run build` (or `npm run dev`).
+  The PHP takeover reads each app's Vite manifest, so a rebuilt bundle is picked up without
+  touching PHP.
 - **Lint**: `npm run lint` (staff JS, ~slow, ESLint type-aware, scoped to `resources/assets`)
   + `npm run lint:style`. **Tests**: `npm test` (jest). Auto-fix JS style with
   `npx wp-scripts lint-js resources/assets/ --fix` (the WP prettier config is strict).

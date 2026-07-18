@@ -6,6 +6,8 @@
     "build": "wp-scripts build",
     "dev:user": "vite --config resources/apps/user/vite.config.ts",
     "build:user": "vite build --config resources/apps/user/vite.config.ts",
+    "dev:admin": "vite --config resources/apps/admin/vite.config.ts",
+    "build:admin": "vite build --config resources/apps/admin/vite.config.ts",
     "test": "wp-scripts test-unit-js",
     "test:watch": "wp-scripts test-unit-js --watch",
     "format": "wp-scripts format",

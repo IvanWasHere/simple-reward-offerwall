@@ -26,7 +26,8 @@ class SpaBoot
       'csrfHeader' => $plugin->config('custom.auth.csrf_header', 'X-RO-CSRF'),
       'pages'      => $plugin->config('custom.pages', []),
       'homeUrl'    => esc_url_raw(home_url('/')),
-      'rewardUrl'  => esc_url_raw(home_url('/reward')),
+      'rewardUrl'  => esc_url_raw(home_url('/' . ltrim((string) $plugin->config('custom.reward_slug', 'reward'), '/'))),
+      'adminUrl'   => esc_url_raw(home_url('/' . ltrim((string) $plugin->config('custom.admin_slug', 'offerwall-admin'), '/'))),
     ];
   }
 }

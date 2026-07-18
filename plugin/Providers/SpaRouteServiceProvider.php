@@ -10,19 +10,20 @@ use SimpleRO\Services\SpaBoot;
 use SimpleRO\WPBones\Support\ServiceProvider;
 
 /**
- * SpaRouteServiceProvider — serves the RewardVault user SPA at /reward by
- * OVERTAKING the WordPress template.
+ * SpaRouteServiceProvider — serves the RewardVault Vite SPAs by OVERTAKING the
+ * WordPress template at their slugs:
  *
- * A rewrite rule maps /reward and /reward/* to an internal query var; on
- * template_redirect we render a bare HTML document (no theme header/footer)
- * that mounts the Vite bundle, then exit. The bundle's hashed asset URLs are
- * read from public/apps/user/.vite/manifest.json so cache-busting is automatic.
+ *   /reward           → the user app          (public/apps/user)
+ *   /offerwall-admin  → the admin dashboard   (public/apps/admin)
  *
- * Client-side routing (react-router, basename=/reward) handles the sub-paths;
- * the "(?:/.*)?" in the rule makes every /reward/* URL serve the same shell.
+ * A rewrite rule maps each slug (and its /* sub-paths) to an internal query var;
+ * on template_redirect we render a bare HTML document (no theme header/footer)
+ * that mounts the matching Vite bundle, then exit. Hashed asset URLs are read
+ * from public/apps/<dir>/.vite/manifest.json so cache-busting is automatic.
  *
- * Auth is NOT gated here — /reward is public and the SPA renders login/register
- * when /auth/me returns 401.
+ * Auth is NOT gated here — the SPA renders its own login screen when /auth/me
+ * returns 401 (and the admin app additionally rejects non-admin sessions). All
+ * real authority is enforced server-side by the REST Guard.
  */
 class SpaRouteServiceProvider extends ServiceProvider
 {
@@ -31,16 +32,35 @@ class SpaRouteServiceProvider extends ServiceProvider
   public function register()
   {
     // WPBones invokes register() during the `init` action (priority 10), so the
-    // rewrite rule is added directly here — a nested add_action('init', ...)
+    // rewrite rules are added directly here — a nested add_action('init', ...)
     // would be too late to fire in the same request.
-    $this->addRewriteRule();
+    $this->addRewriteRules();
     add_filter('query_vars', [$this, 'registerQueryVar']);
     add_action('template_redirect', [$this, 'maybeRenderSpa']);
   }
 
-  public function addRewriteRule(): void
+  /** @return array<string,array{dir:string,slug:string,title:string}> app-key => config */
+  private function apps(): array
   {
-    add_rewrite_rule('^' . $this->slug() . '(?:/.*)?/?$', 'index.php?' . self::QUERY_VAR . '=user', 'top');
+    return [
+      'user'  => [
+        'dir'   => 'user',
+        'slug'  => (string) $this->plugin->config('custom.reward_slug', 'reward'),
+        'title' => 'RewardVault',
+      ],
+      'admin' => [
+        'dir'   => 'admin',
+        'slug'  => (string) $this->plugin->config('custom.admin_slug', 'offerwall-admin'),
+        'title' => 'RewardVault Admin',
+      ],
+    ];
+  }
+
+  public function addRewriteRules(): void
+  {
+    foreach ($this->apps() as $key => $app) {
+      add_rewrite_rule('^' . $app['slug'] . '(?:/.*)?/?$', 'index.php?' . self::QUERY_VAR . '=' . $key, 'top');
+    }
   }
 
   public function registerQueryVar(array $vars): array
@@ -51,7 +71,9 @@ class SpaRouteServiceProvider extends ServiceProvider
 
   public function maybeRenderSpa(): void
   {
-    if (get_query_var(self::QUERY_VAR) !== 'user') {
+    $key = (string) get_query_var(self::QUERY_VAR);
+    $apps = $this->apps();
+    if (!isset($apps[$key])) {
       return;
     }
 
@@ -59,18 +81,14 @@ class SpaRouteServiceProvider extends ServiceProvider
     nocache_headers();
     header('Content-Type: text/html; charset=utf-8');
 
-    echo $this->renderDocument('user'); // phpcs:ignore -- self-built, escaped below.
+    echo $this->renderDocument($key, $apps[$key]); // phpcs:ignore -- self-built, escaped below.
     exit;
   }
 
-  private function slug(): string
+  /** @param array{dir:string,slug:string,title:string} $app */
+  private function renderDocument(string $role, array $app): string
   {
-    return (string) $this->plugin->config('custom.reward_slug', 'reward');
-  }
-
-  private function renderDocument(string $role): string
-  {
-    [$jsSrc, $cssHrefs] = $this->assets();
+    [$jsSrc, $cssHrefs] = $this->assets($app['dir']);
     $boot = wp_json_encode(SpaBoot::data($role));
 
     $tags = '';
@@ -79,9 +97,12 @@ class SpaRouteServiceProvider extends ServiceProvider
     }
 
     if ($jsSrc === '') {
-      // Bundle not built yet — render a helpful placeholder instead of a blank page.
       $body = '<div id="root"><p style="font-family:sans-serif;padding:32px">'
-        . esc_html__('The RewardVault app has not been built yet. Run `npm run build:user`.', 'simple-reward-offerwall')
+        . sprintf(
+          /* translators: %s is an npm script name. */
+          esc_html__('This app has not been built yet. Run `npm run %s`.', 'simple-reward-offerwall'),
+          'build:' . $app['dir']
+        )
         . '</p></div>';
       $script = '';
     } else {
@@ -93,7 +114,7 @@ class SpaRouteServiceProvider extends ServiceProvider
       . '<head>'
       . '<meta charset="' . esc_attr(get_bloginfo('charset')) . '">'
       . '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
-      . '<title>' . esc_html__('RewardVault', 'simple-reward-offerwall') . '</title>'
+      . '<title>' . esc_html($app['title']) . '</title>'
       . '<link rel="preconnect" href="https://fonts.googleapis.com">'
       . '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
       . '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">'
@@ -106,15 +127,15 @@ class SpaRouteServiceProvider extends ServiceProvider
   }
 
   /**
-   * Resolve the built entry JS + CSS from the Vite manifest.
+   * Resolve the built entry JS + CSS from a Vite app's manifest.
    *
    * @return array{0:string,1:string[]} [jsSrc, cssHrefs]
    */
-  private function assets(): array
+  private function assets(string $dir): array
   {
     $plugin = $this->plugin;
-    $manifestPath = $plugin->basePath . '/public/apps/user/.vite/manifest.json';
-    $baseUrl = rtrim($plugin->apps, '/') . '/user';
+    $manifestPath = $plugin->basePath . '/public/apps/' . $dir . '/.vite/manifest.json';
+    $baseUrl = rtrim($plugin->apps, '/') . '/' . $dir;
 
     if (!file_exists($manifestPath)) {
       return ['', []];

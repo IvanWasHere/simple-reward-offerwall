@@ -15,12 +15,12 @@ if (!defined('ABSPATH')) {
 |   2. register + flush the /reward rewrite rule for the user SPA takeover
 |      (SpaRouteServiceProvider serves it; the rule must exist at flush time).
 |
-| The user app is NOT a page — it takes over the WordPress template at /reward.
+| The user + admin apps are NOT pages — they take over the WordPress template at
+| /reward and /offerwall-admin. Only the support app is still shortcode-hosted.
 |
 */
 
 $simple_ro_pages = [
-  'admin'   => ['slug' => SimpleRO()->config('custom.pages.admin', 'offerwall-admin'), 'title' => 'Offerwall Admin', 'shortcode' => '[simple_ro_admin_app]'],
   'support' => ['slug' => SimpleRO()->config('custom.pages.support', 'offerwall-support'), 'title' => 'Offerwall Support', 'shortcode' => '[simple_ro_support_app]'],
 ];
 
@@ -39,7 +39,12 @@ foreach ($simple_ro_pages as $simple_ro_page) {
   ]);
 }
 
-// User SPA takeover: register the rewrite rule, then flush so /reward resolves.
-$simple_ro_reward_slug = SimpleRO()->config('custom.reward_slug', 'reward');
-add_rewrite_rule('^' . $simple_ro_reward_slug . '(?:/.*)?/?$', 'index.php?simple_ro_spa=user', 'top');
+// User + admin SPA takeovers: register the rewrite rules, then flush so the slugs resolve.
+$simple_ro_spa_slugs = [
+  'user'  => SimpleRO()->config('custom.reward_slug', 'reward'),
+  'admin' => SimpleRO()->config('custom.admin_slug', 'offerwall-admin'),
+];
+foreach ($simple_ro_spa_slugs as $simple_ro_spa_key => $simple_ro_spa_slug) {
+  add_rewrite_rule('^' . $simple_ro_spa_slug . '(?:/.*)?/?$', 'index.php?simple_ro_spa=' . $simple_ro_spa_key, 'top');
+}
 flush_rewrite_rules();

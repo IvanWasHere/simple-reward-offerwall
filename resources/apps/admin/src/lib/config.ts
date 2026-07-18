@@ -1,7 +1,6 @@
 /**
- * The boot object injected by the PHP takeover (SpaRouteServiceProvider) /
- * shortcode provider as `window.SimpleRO`. Shape mirrors
- * SimpleRO\Services\SpaBoot::data().
+ * Boot object injected by the PHP takeover (SpaRouteServiceProvider) as
+ * `window.SimpleRO`. Shape mirrors SimpleRO\Services\SpaBoot::data().
  */
 export interface SimpleROConfig {
   restBase: string;

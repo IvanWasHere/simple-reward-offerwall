@@ -87,6 +87,11 @@ function Gate() {
   const { user, loading, setUser } = useAuth();
   if (loading) return <FullScreenSpinner />;
   if (!user) return <AuthScreens onAuthenticated={setUser} />;
+  // Admins belong in the admin dashboard, not the user app.
+  if (user.type === 'admin') {
+    window.location.replace(config().adminUrl);
+    return <FullScreenSpinner />;
+  }
   return <AuthedApp />;
 }
 

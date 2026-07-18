@@ -10,12 +10,12 @@ use SimpleRO\Services\SpaBoot;
 use SimpleRO\WPBones\Support\ServiceProvider;
 
 /**
- * Registers the staff front-end SPA shortcodes and enqueues their built bundles.
+ * Registers the support front-end SPA shortcode and enqueues its built bundle.
  *
- *   [simple_ro_admin_app]    → public/apps/admin-app.js
  *   [simple_ro_support_app]  → public/apps/support-app.js
  *
- * (The user app is served at /reward by SpaRouteServiceProvider, not a shortcode.)
+ * (The user + admin apps are served at /reward and /offerwall-admin by
+ * SpaRouteServiceProvider — template takeovers, not shortcodes.)
  *
  * Each handler enqueues the @wordpress/scripts bundle (deps/version read from the
  * generated .asset.php), localizes the SimpleRO boot object (REST base, cookie /
@@ -24,11 +24,10 @@ use SimpleRO\WPBones\Support\ServiceProvider;
  */
 class AppShortcodesServiceProvider extends ServiceProvider
 {
-  /** @var array<string,array{app:string,root:string}> shortcode => app config */
+  /** @var array<string,array{app:string,role:string}> shortcode => app config */
   private array $apps = [
-    // The user app moved to the /reward template takeover (SpaRouteServiceProvider);
-    // only the staff apps are shortcode-hosted now.
-    'simple_ro_admin_app'   => ['app' => 'admin-app', 'role' => 'admin'],
+    // The user + admin apps moved to template takeovers (SpaRouteServiceProvider:
+    // /reward and /offerwall-admin). Only the support app is still shortcode-hosted.
     'simple_ro_support_app' => ['app' => 'support-app', 'role' => 'support'],
   ];
 

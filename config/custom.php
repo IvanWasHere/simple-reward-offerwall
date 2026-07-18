@@ -32,9 +32,10 @@ return [
     'csrf_header'             => 'X-RO-CSRF',
   ],
 
-  // The user SPA is served at this path by a full template takeover
-  // (SpaRouteServiceProvider) — NOT a shortcode page.
+  // The user + admin SPAs are served at these paths by full template takeovers
+  // (SpaRouteServiceProvider) — NOT shortcode pages.
   'reward_slug' => 'reward',
+  'admin_slug'  => 'offerwall-admin',
 
   // Default for the site-level external-id prefix. Admins override this at runtime
   // via PUT /admin/settings (stored in the simple_ro_settings option). The
