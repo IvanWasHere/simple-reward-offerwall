@@ -1,5 +1,6 @@
 import { useState, type ReactNode, type CSSProperties, type FormEvent } from 'react';
 import { api, ApiError } from '../lib/api';
+import { captureFingerprint } from '../lib/fingerprint';
 import type { User } from '../lib/types';
 
 type Mode = 'login' | 'register' | 'forgot' | 'reset';
@@ -140,12 +141,14 @@ export function AuthScreens({ onAuthenticated }: { onAuthenticated: (u: User) =>
     try {
       if (mode === 'login') {
         const res = await api<{ user: User }>('/auth/login', { method: 'POST', body: { email, password } });
+        void captureFingerprint();
         onAuthenticated(res.user);
       } else if (mode === 'register') {
         const res = await api<{ user: User }>('/auth/register', {
           method: 'POST',
           body: { display_name: displayName, email, password },
         });
+        void captureFingerprint();
         onAuthenticated(res.user);
       } else if (mode === 'forgot') {
         const res = await api<{ message: string }>('/auth/forgot', { method: 'POST', body: { email } });
