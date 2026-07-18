@@ -6,6 +6,8 @@
 export interface SimpleROConfig {
   restBase: string;
   app: 'user' | 'admin' | 'support';
+  appName: string;
+  appIconUrl: string;
   cookieCsrf: string;
   csrfHeader: string;
   pages: Record<string, string>;

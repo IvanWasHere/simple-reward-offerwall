@@ -48,6 +48,31 @@ class Settings
     return (string) $val;
   }
 
+  /** The global app/brand name shown across all SPAs (default 'RewardVault'). */
+  public static function appName(): string
+  {
+    $val = self::get('app_name', null);
+    $val = ($val === null || $val === '') ? SimpleRO()->config('custom.app_name', 'RewardVault') : $val;
+    return (string) $val;
+  }
+
+  /** The media-library attachment id chosen as the app icon (0 = none). */
+  public static function appIconId(): int
+  {
+    return (int) self::get('app_icon_id', 0);
+  }
+
+  /** Resolved URL for the app icon, or '' when unset. */
+  public static function appIconUrl(): string
+  {
+    $id = self::appIconId();
+    if ($id <= 0) {
+      return '';
+    }
+    $url = wp_get_attachment_image_url($id, 'full');
+    return $url ? (string) $url : '';
+  }
+
   /**
    * Build the external identifier: `<prefix>-<user_id>-<user_hash>`. The prefix
    * is omitted when unset, so the id is never left with a dangling leading dash.

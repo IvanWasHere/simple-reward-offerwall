@@ -452,6 +452,9 @@
             *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
         }
 
+        /* App brand icon (media-library image) */
+        .brand-img { width: 22px; height: 22px; object-fit: contain; border-radius: 5px; display: inline-block; vertical-align: middle; }
+
         /* Balance pill in the navbar (after the profile button) */
         .nav-coins {
             display: flex; align-items: center; gap: 7px; flex-shrink: 0;

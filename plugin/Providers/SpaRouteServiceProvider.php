@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
+use SimpleRO\Services\Settings;
 use SimpleRO\Services\SpaBoot;
 use SimpleRO\WPBones\Support\ServiceProvider;
 
@@ -114,7 +115,7 @@ class SpaRouteServiceProvider extends ServiceProvider
       . '<head>'
       . '<meta charset="' . esc_attr(get_bloginfo('charset')) . '">'
       . '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
-      . '<title>' . esc_html($app['title']) . '</title>'
+      . '<title>' . esc_html($role === 'admin' ? Settings::appName() . ' Admin' : Settings::appName()) . '</title>'
       . '<link rel="preconnect" href="https://fonts.googleapis.com">'
       . '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
       . '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">'

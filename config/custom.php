@@ -37,6 +37,9 @@ return [
   'reward_slug' => 'reward',
   'admin_slug'  => 'offerwall-admin',
 
+  // Default app/brand name (admins override it + set an icon via /admin/settings).
+  'app_name' => 'RewardVault',
+
   // Default for the site-level external-id prefix. Admins override this at runtime
   // via PUT /admin/settings (stored in the simple_ro_settings option). The
   // {external_id} iframe macro expands to "<prefix>-<user_id>-<user_hash>".

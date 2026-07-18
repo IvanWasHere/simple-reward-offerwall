@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { api, ApiError } from '../lib/api';
+import { config } from '../lib/config';
 import type { Me } from '../hooks/useAuth';
 
 export function AdminLogin({ onDone }: { onDone: (u: Me) => void }) {
@@ -26,8 +27,12 @@ export function AdminLogin({ onDone }: { onDone: (u: Me) => void }) {
     <div className="auth-screen">
       <div className="modal-box auth-card">
         <div className="auth-brand">
-          <i className="fa-solid fa-vault" />
-          <span>RewardVault</span>
+          {config().appIconUrl ? (
+            <img className="brand-img" src={config().appIconUrl} alt="" />
+          ) : (
+            <i className="fa-solid fa-vault" />
+          )}
+          <span>{config().appName}</span>
           <span className="sidebar-badge">Admin</span>
         </div>
         <h2 className="auth-title">Sign in</h2>

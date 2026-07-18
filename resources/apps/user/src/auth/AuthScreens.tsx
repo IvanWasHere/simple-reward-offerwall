@@ -1,6 +1,7 @@
 import { useState, type ReactNode, type CSSProperties, type FormEvent } from 'react';
 import { api, ApiError } from '../lib/api';
 import { captureFingerprint } from '../lib/fingerprint';
+import { config } from '../lib/config';
 import type { User } from '../lib/types';
 
 type Mode = 'login' | 'register' | 'forgot' | 'reset';
@@ -66,9 +67,13 @@ function Shell({ title, subtitle, children }: { title: string; subtitle?: string
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, position: 'relative', zIndex: 1 }}>
       <div className="modal-box" style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, fontSize: 24, color: 'var(--accent)' }}>
-            <i className="fa-solid fa-vault" style={{ marginRight: 8 }} />
-            RewardVault
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, fontSize: 24, color: 'var(--accent)' }}>
+            {config().appIconUrl ? (
+              <img className="brand-img" src={config().appIconUrl} alt="" style={{ width: 26, height: 26 }} />
+            ) : (
+              <i className="fa-solid fa-vault" />
+            )}
+            {config().appName}
           </div>
           <h2 style={{ margin: '16px 0 4px', fontSize: 20 }}>{title}</h2>
           {subtitle && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{subtitle}</p>}

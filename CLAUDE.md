@@ -35,8 +35,12 @@ Namespace `SimpleRO` (PSR-4 → `plugin/`). REST API at `/wp-json/simple-ro/v1`.
     `resources/assets/apps/support-app/index.tsx`, built to `public/apps/support-app.js`,
     mounted via the `[simple_ro_support_app]` shortcode on the auto-created
     `/offerwall-support` page.
-  - The `window.SimpleRO` boot object (REST base, cookie/CSRF names, URLs) is shared by all
-    via `plugin/Services/SpaBoot.php`. REST client: the user + admin apps each have their own
+  - The `window.SimpleRO` boot object (REST base, cookie/CSRF names, URLs, plus the global
+    `appName` / `appIconUrl` branding) is shared by all via `plugin/Services/SpaBoot.php`.
+    Admins set the app name + icon (picked from the WP media library via `GET /admin/media`,
+    since the SPA has no `wp.media`) on the admin Settings page — `Services/Settings`
+    (`app_name` / `app_icon_id`); the brand replaces the default "RewardVault" + vault icon
+    across both SPAs and the takeover `<title>`. REST client: the user + admin apps each have their own
     `resources/apps/<app>/src/lib/api.ts`; the support app uses `resources/assets/apps/shared/api.ts`.
 - **Providers are adapters.** `plugin/Providers/Contracts/ProviderAdapter.php` +
   `Adapters/{Iframe,OfferwallApi,Static}Adapter.php` + `ProviderAdapterFactory`. Types:

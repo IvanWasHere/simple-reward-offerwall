@@ -22,6 +22,8 @@ class SpaBoot
     return [
       'restBase'   => esc_url_raw(rtrim(rest_url('simple-ro/v1'), '/')),
       'app'        => $role,
+      'appName'    => Settings::appName(),
+      'appIconUrl' => Settings::appIconUrl(),
       'cookieCsrf' => $plugin->config('custom.auth.cookie_csrf', 'ro_csrf'),
       'csrfHeader' => $plugin->config('custom.auth.csrf_header', 'X-RO-CSRF'),
       'pages'      => $plugin->config('custom.pages', []),

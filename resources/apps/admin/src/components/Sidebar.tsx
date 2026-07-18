@@ -1,10 +1,18 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { config } from '../lib/config';
 
 const SECTIONS = [
   {
     label: 'Overview',
     items: [{ to: '/', icon: 'fa-chart-pie', text: 'Dashboard', end: true }],
+  },
+  {
+    label: 'People',
+    items: [
+      { to: '/users', icon: 'fa-users', text: 'Users', end: false },
+      { to: '/support', icon: 'fa-life-ring', text: 'Support', end: false },
+    ],
   },
   {
     label: 'Management',
@@ -23,13 +31,6 @@ const SECTIONS = [
     ],
   },
   {
-    label: 'People',
-    items: [
-      { to: '/users', icon: 'fa-users', text: 'Users', end: false },
-      { to: '/support', icon: 'fa-life-ring', text: 'Support', end: false },
-    ],
-  },
-  {
     label: 'System',
     items: [{ to: '/settings', icon: 'fa-gear', text: 'Settings', end: false }],
   },
@@ -42,8 +43,12 @@ export function Sidebar({ open, onNavigate }: { open: boolean; onNavigate: () =>
   return (
     <aside className={'sidebar' + (open ? ' open' : '')}>
       <div className="sidebar-brand">
-        <i className="fa-solid fa-vault" />
-        <span>RewardVault</span>
+        {config().appIconUrl ? (
+          <img className="brand-img" src={config().appIconUrl} alt="" />
+        ) : (
+          <i className="fa-solid fa-vault" />
+        )}
+        <span>{config().appName}</span>
         <span className="sidebar-badge">Admin</span>
       </div>
       <nav className="sidebar-nav">

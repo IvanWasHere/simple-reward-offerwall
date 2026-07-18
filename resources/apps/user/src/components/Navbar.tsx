@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { formatCoins } from '../lib/format';
+import { config } from '../lib/config';
 import type { Theme } from '../lib/theme';
 
 const LINKS = [
@@ -79,12 +80,13 @@ interface NavbarProps {
 
 export function Navbar({ theme, balance, onToggleTheme, onOpenProfile }: NavbarProps) {
   const isDark = theme === 'dark';
+  const { appName, appIconUrl } = config();
   return (
     <nav className="navbar">
       <div className="navbar-inner">
         <NavLink to="/" className="nav-brand" end>
-          <i className="fa-solid fa-vault" />
-          RewardVault
+          {appIconUrl ? <img className="brand-img" src={appIconUrl} alt="" /> : <i className="fa-solid fa-vault" />}
+          {appName}
         </NavLink>
         <div className="nav-links">
           {LINKS.map((l) => (

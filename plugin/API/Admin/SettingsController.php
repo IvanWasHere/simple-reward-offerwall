@@ -27,6 +27,19 @@ class SettingsController extends RestController
       Settings::set('external_id_prefix', $prefix);
     }
 
+    if ($this->request->get_param('app_name') !== null) {
+      Settings::set('app_name', sanitize_text_field((string) $this->request->get_param('app_name')));
+    }
+
+    if ($this->request->get_param('app_icon_id') !== null) {
+      $iconId = (int) $this->request->get_param('app_icon_id');
+      // 0 clears; otherwise it must be a real image attachment.
+      if ($iconId > 0 && !wp_attachment_is_image($iconId)) {
+        return $this->responseError('ro_invalid', __('The selected app icon must be an image.', 'simple-reward-offerwall'), 422);
+      }
+      Settings::set('app_icon_id', $iconId);
+    }
+
     return $this->response(['settings' => $this->present()]);
   }
 
@@ -34,6 +47,9 @@ class SettingsController extends RestController
   {
     return [
       'externalIdPrefix' => Settings::externalIdPrefix(),
+      'appName'          => Settings::appName(),
+      'appIconId'        => Settings::appIconId(),
+      'appIconUrl'       => Settings::appIconUrl(),
     ];
   }
 }

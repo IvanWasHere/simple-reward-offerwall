@@ -126,6 +126,7 @@ $admin = ['permission_callback' => Guard::role('admin')];
 
 Route::get('/admin/settings', 'SimpleRO\API\Admin\SettingsController@show', $admin);
 Route::put('/admin/settings', 'SimpleRO\API\Admin\SettingsController@update', $admin);
+Route::get('/admin/media', 'SimpleRO\API\Admin\MediaController@index', $admin);
 
 Route::get('/admin/providers', 'SimpleRO\API\Admin\ProvidersController@index', $admin);
 Route::post('/admin/providers', 'SimpleRO\API\Admin\ProvidersController@store', $admin);
