@@ -11,6 +11,7 @@ import { RewardsPage } from './pages/RewardsPage';
 import { RedemptionsPage } from './pages/RedemptionsPage';
 import { PayoutsPage } from './pages/PayoutsPage';
 import { UsersPage } from './pages/UsersPage';
+import { UserDetailPage } from './pages/users/UserDetailPage';
 import { SupportPage } from './pages/SupportPage';
 import { SettingsPage } from './pages/SettingsPage';
 
@@ -71,6 +72,7 @@ function Gate() {
           <Route path="/redemptions" element={<RedemptionsPage />} />
           <Route path="/payouts" element={<PayoutsPage />} />
           <Route path="/users" element={<UsersPage />} />
+          <Route path="/users/:id" element={<UserDetailPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<DashboardPage />} />

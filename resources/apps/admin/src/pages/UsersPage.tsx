@@ -6,14 +6,14 @@ import { useApiData } from '../hooks/useApiData';
 import { api, ApiError } from '../lib/api';
 import { fmtCoins } from '../lib/format';
 import { toast } from '../store/toast';
+import { useNavigate } from 'react-router-dom';
 import { askConfirm } from '../store/confirm';
-import { UserDetailModal } from './users/UserDetailModal';
 import type { UserRow } from '../lib/types';
 
 export function UsersPage() {
+  const navigate = useNavigate();
   const [q, setQ] = useState('');
   const [query, setQuery] = useState('');
-  const [detail, setDetail] = useState<UserRow | null>(null);
   const path = query ? `/admin/users?q=${encodeURIComponent(query)}` : '/admin/users';
   const { data, loading, error, refetch } = useApiData<{ users: UserRow[] }>(path);
   const rows = data?.users ?? [];
@@ -50,7 +50,6 @@ export function UsersPage() {
   };
 
   return (
-    <>
     <TableCard
       title="Users"
       count={rows.length}
@@ -112,7 +111,7 @@ export function UsersPage() {
                   {fmtCoins(u.balance)}
                 </td>
                 <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                  <button className="btn btn-ghost btn-icon btn-sm" onClick={() => setDetail(u)} title="View details & clicks">
+                  <button className="btn btn-ghost btn-icon btn-sm" onClick={() => navigate(`/users/${u.id}`)} title="View details">
                     <i className="fa-solid fa-magnifying-glass" />
                   </button>{' '}
                   <button
@@ -128,7 +127,5 @@ export function UsersPage() {
         </table>
       )}
     </TableCard>
-    {detail && <UserDetailModal user={detail} onClose={() => setDetail(null)} />}
-    </>
   );
 }

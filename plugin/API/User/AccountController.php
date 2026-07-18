@@ -129,6 +129,68 @@ class AccountController extends RestController
     return $this->response(['clicks' => $clicks]);
   }
 
+  /**
+   * Record a device fingerprint for the signed-in user (captured by the SPA on
+   * login). The client sends a `components` object of navigator/screen/timezone
+   * signals; the server adds the request IP + user-agent and a visitor hash.
+   */
+  public function storeFingerprint()
+  {
+    global $wpdb;
+    $user = Guard::user($this->request);
+
+    $components = $this->request->get_param('components');
+    if (!is_array($components)) {
+      return $this->responseError('ro_invalid', __('Fingerprint components are required.', 'simple-reward-offerwall'), 422);
+    }
+
+    $get = static function (string $key) use ($components): string {
+      return isset($components[$key]) && is_scalar($components[$key]) ? sanitize_text_field((string) $components[$key]) : '';
+    };
+
+    // Prefer the ThumbmarkJS hash sent by the client; otherwise derive a stable
+    // fallback id from the summary signals.
+    $visitorId = preg_replace('/[^a-f0-9]/i', '', (string) $this->request->get_param('visitorId'));
+    if ($visitorId === '') {
+      $visitorId = hash('sha256', implode('|', [
+        $get('userAgent'), $get('platform'), $get('timezone'), $get('screen'), $get('vendor'),
+      ]));
+    }
+
+    $wpdb->insert(
+      $wpdb->prefix . 'ro_fingerprints',
+      [
+        'user_id'    => (int) $user->id,
+        'visitor_id' => $visitorId,
+        'ip'         => $this->clientIp(),
+        'user_agent' => substr($get('userAgent') ?: (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 500),
+        'platform'   => substr($get('platform'), 0, 120),
+        'language'   => substr($get('language'), 0, 60),
+        'timezone'   => substr($get('timezone'), 0, 80),
+        'screen'     => substr($get('screen'), 0, 40),
+        'data'       => wp_json_encode($components),
+        'created_at' => gmdate('Y-m-d H:i:s'),
+      ],
+      ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
+    );
+
+    return $this->response(['ok' => true, 'visitorId' => $visitorId], 201);
+  }
+
+  /** Best-effort client IP from the request (honours a single proxy hop). */
+  private function clientIp(): string
+  {
+    $forwarded = (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '');
+    if ($forwarded !== '') {
+      $first = trim(explode(',', $forwarded)[0]);
+      if (filter_var($first, FILTER_VALIDATE_IP)) {
+        return $first;
+      }
+    }
+    $remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    return filter_var($remote, FILTER_VALIDATE_IP) ? $remote : '';
+  }
+
   /** Update the signed-in user's display name and/or email. */
   public function updateProfile()
   {

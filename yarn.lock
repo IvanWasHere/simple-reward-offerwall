@@ -2842,6 +2842,11 @@
     "@testing-library/dom" "^10.0.0"
     "@types/react-dom" "^18.0.0"
 
+"@thumbmarkjs/thumbmarkjs@^1.10.1":
+  version "1.10.1"
+  resolved "https://registry.npmjs.org/@thumbmarkjs/thumbmarkjs/-/thumbmarkjs-1.10.1.tgz"
+  integrity sha512-BH7HP3g+NeIXgcYDxtNjx2wfO5cHaH6DjkoDzi4adYe0fknkQZABtKag+2j75p5p8mGMhl9mq2Ee5m1UosYPUw==
+
 "@tootallnate/quickjs-emscripten@^0.23.0":
   version "0.23.0"
   resolved "https://registry.npmjs.org/@tootallnate/quickjs-emscripten/-/quickjs-emscripten-0.23.0.tgz"

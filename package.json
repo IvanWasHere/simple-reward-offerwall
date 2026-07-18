@@ -23,6 +23,7 @@
   "license": "GPL-3.0",
   "author": "Giovambattista Fazioli <wpbones.info@gmail.com>",
   "dependencies": {
+    "@thumbmarkjs/thumbmarkjs": "^1.10.1",
     "@wordpress/components": "^32.6.0",
     "@wordpress/data": "^10.44.0",
     "@wordpress/element": "^6.44.0",

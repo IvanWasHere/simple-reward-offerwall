@@ -83,6 +83,7 @@ Route::get('/me/ledger', 'SimpleRO\API\User\AccountController@ledger', $user);
 Route::get('/me/rewards', 'SimpleRO\API\User\AccountController@rewards', $user);
 Route::get('/me/clicks', 'SimpleRO\API\User\AccountController@clicks', $user);
 Route::put('/me/profile', 'SimpleRO\API\User\AccountController@updateProfile', $user);
+Route::post('/me/fingerprint', 'SimpleRO\API\User\AccountController@storeFingerprint', $user);
 Route::get('/payouts', 'SimpleRO\API\User\RedemptionsController@catalog', $user);
 Route::post('/redemptions', 'SimpleRO\API\User\RedemptionsController@store', $user);
 Route::get('/me/redemptions', 'SimpleRO\API\User\RedemptionsController@mine', $user);
@@ -144,6 +145,8 @@ Route::put('/admin/offers/(?P<id>\d+)', 'SimpleRO\API\Admin\OffersController@upd
 Route::get('/admin/users', 'SimpleRO\API\Admin\UsersController@index', $admin);
 Route::get('/admin/users/(?P<id>\d+)', 'SimpleRO\API\Admin\UsersController@show', $admin);
 Route::get('/admin/users/(?P<id>\d+)/clicks', 'SimpleRO\API\Admin\UsersController@clicks', $admin);
+Route::get('/admin/users/(?P<id>\d+)/fingerprints', 'SimpleRO\API\Admin\UsersController@fingerprints', $admin);
+Route::delete('/admin/users/(?P<id>\d+)/fingerprints/(?P<fpId>\d+)', 'SimpleRO\API\Admin\UsersController@deleteFingerprint', $admin);
 Route::put('/admin/users/(?P<id>\d+)', 'SimpleRO\API\Admin\UsersController@update', $admin);
 
 Route::get('/admin/stats', 'SimpleRO\API\Admin\StatsController@index', $admin);

@@ -197,6 +197,59 @@ class UsersController extends RestController
     return $this->response(['clicks' => $clicks]);
   }
 
+  /** A user's device fingerprints (most recent first). */
+  public function fingerprints()
+  {
+    global $wpdb;
+    $id = (int) $this->request->get_param('id');
+
+    $rows = $wpdb->get_results($wpdb->prepare(
+      "SELECT id, visitor_id, ip, user_agent, platform, language, timezone, screen, data, created_at
+         FROM {$wpdb->prefix}ro_fingerprints
+        WHERE user_id = %d
+        ORDER BY created_at DESC, id DESC
+        LIMIT 200",
+      $id
+    ));
+
+    $fingerprints = array_map(function ($r) {
+      return [
+        'id'        => (int) $r->id,
+        'visitorId' => $r->visitor_id,
+        'ip'        => $r->ip,
+        'userAgent' => $r->user_agent,
+        'platform'  => $r->platform,
+        'language'  => $r->language,
+        'timezone'  => $r->timezone,
+        'screen'    => $r->screen,
+        'data'      => json_decode((string) $r->data, true) ?: (object) [],
+        'createdAt' => $r->created_at,
+      ];
+    }, $rows ?: []);
+
+    return $this->response(['fingerprints' => $fingerprints]);
+  }
+
+  /** Delete a single fingerprint row (admin housekeeping of old device records). */
+  public function deleteFingerprint()
+  {
+    global $wpdb;
+    $id = (int) $this->request->get_param('id');
+    $fpId = (int) $this->request->get_param('fpId');
+
+    $deleted = $wpdb->delete(
+      $wpdb->prefix . 'ro_fingerprints',
+      ['id' => $fpId, 'user_id' => $id],
+      ['%d', '%d']
+    );
+
+    if (!$deleted) {
+      return $this->responseError('ro_not_found', __('Fingerprint not found.', 'simple-reward-offerwall'), 404);
+    }
+
+    return $this->response(['deleted' => true]);
+  }
+
   private function present($row): array
   {
     if (!$row) {

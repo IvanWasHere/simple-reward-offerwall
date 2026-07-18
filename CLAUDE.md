@@ -99,8 +99,16 @@ Beyond offers/clicks/balance/payouts, the user API also serves the RewardVault
 
 `users` (incl. `referral_code`, `referred_by`), `sessions`, `password_resets`,
 `login_attempts`, `providers`, `provider_callbacks`, `offers`, `clicked`, `callbacks`,
-`rewards`, `coin_ledger`, `payouts`, `redemptions`, `wheel_spins`, `support_requests`,
-`support_messages`. Money is integer minor units; coins are integers.
+`rewards`, `coin_ledger`, `payouts`, `redemptions`, `wheel_spins`, `fingerprints`,
+`support_requests`, `support_messages`. Money is integer minor units; coins are integers.
+
+**Device fingerprinting**: the user SPA runs **ThumbmarkJS** (bundled into the Vite user
+app — no external API) on each login and POSTs the result to `POST /me/fingerprint`
+(`AccountController::storeFingerprint`), stored in `ro_fingerprints` (server adds IP +
+request UA; `visitor_id` = the ThumbmarkJS hash). Admins view a user's fingerprints on the
+**user detail page** (`/offerwall-admin/users/:id` — a real route, not a modal) alongside
+their clicks, and can delete individual fingerprints
+(`GET|DELETE /admin/users/{id}/fingerprints[/{fpId}]`).
 
 ## Working on this
 
