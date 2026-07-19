@@ -7,11 +7,15 @@ if (!defined('ABSPATH')) {
 }
 
 use SimpleRO\Providers\Contracts\ProviderAdapter;
+use SimpleRO\Providers\Schemas\Contracts\OfferSchema;
+use SimpleRO\Providers\Schemas\OfferSchemaRegistry;
 
 /**
  * AbstractAdapter — shared config parsing, HTTP fetch and offer normalization.
  *
- * A provider's `config` JSON may declare:
+ * When a provider names a built-in schema (ro_providers.offer_schema), that schema
+ * drives the HTTP method, offers_path and per-offer mapping. Otherwise we fall back
+ * to the legacy `config` JSON:
  *   {
  *     "offers_path": "offers",          // dot-path to the offers array in the JSON
  *     "field_map": { our_field: source_key, ... },
@@ -76,6 +80,33 @@ abstract class AbstractAdapter implements ProviderAdapter
 
   /* ---------------------------------------------------------------- */
 
+  /** The provider's built-in offer schema, or null (legacy field_map path). */
+  protected function schema(object $provider): ?OfferSchema
+  {
+    return OfferSchemaRegistry::for($provider->offer_schema ?? '');
+  }
+
+  /**
+   * Normalize one raw offer via the provider's schema when set, else the legacy
+   * field_map. Injects providerId. Returns null to skip the offer.
+   *
+   * @param array<string,mixed> $raw
+   * @return array<string,mixed>|null
+   */
+  protected function normalize(object $provider, array $raw): ?array
+  {
+    $schema = $this->schema($provider);
+    if ($schema) {
+      $n = $schema->mapOffer($raw);
+      if ($n === null) {
+        return null;
+      }
+      $n['providerId'] = (int) $provider->id;
+      return $n;
+    }
+    return $this->normalizeOffer($raw, $provider);
+  }
+
   protected function config(object $provider): array
   {
     $cfg = json_decode((string) ($provider->config ?? ''), true);
@@ -119,11 +150,22 @@ abstract class AbstractAdapter implements ProviderAdapter
     // config.sslverify=false (e.g. a self-hosted feed with a private cert).
     $sslVerify = !array_key_exists('sslverify', $cfg) || (bool) $cfg['sslverify'];
 
-    $response = wp_remote_get($url, [
+    $schema = $this->schema($provider);
+    $args = [
       'timeout'   => 10,
       'headers'   => $headers,
       'sslverify' => $sslVerify,
-    ]);
+    ];
+    if ($schema && strtoupper($schema->httpMethod()) === 'POST') {
+      $body = $schema->requestBody($provider);
+      if ($body) {
+        $args['headers']['Content-Type'] = 'application/json';
+        $args['body'] = wp_json_encode($body);
+      }
+      $response = wp_remote_post($url, $args);
+    } else {
+      $response = wp_remote_get($url, $args);
+    }
     if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) !== 200) {
       if (function_exists('logger')) {
         logger()->error('[simple-ro] provider fetch failed', ['provider' => $provider->id]);
@@ -136,7 +178,7 @@ abstract class AbstractAdapter implements ProviderAdapter
       return [];
     }
 
-    $path = $cfg['offers_path'] ?? 'offers';
+    $path = $schema ? $schema->offersPath() : ($cfg['offers_path'] ?? 'offers');
     $offers = $this->dataGet($json, (string) $path);
     if (!is_array($offers)) {
       // Maybe the response itself is the list.

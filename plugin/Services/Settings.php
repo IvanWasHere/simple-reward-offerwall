@@ -85,4 +85,26 @@ class Settings
     );
     return implode('-', $parts);
   }
+
+  /**
+   * Reverse buildExternalId: pull the user id + hash out of an incoming
+   * `<prefix>-<user_id>-<user_hash>` string. The prefix is dash-free (sanitized to
+   * [A-Za-z0-9_]) so the trailing two segments are always id + hash. Returns
+   * [0, ''] when it isn't a well-formed external id.
+   *
+   * @return array{0:int,1:string} [userId, userHash]
+   */
+  public static function parseExternalId(string $externalId): array
+  {
+    $parts = explode('-', trim($externalId));
+    if (count($parts) < 2) {
+      return [0, ''];
+    }
+    $hash = (string) array_pop($parts);
+    $userId = (int) array_pop($parts);
+    if ($userId <= 0 || !ctype_xdigit($hash)) {
+      return [0, ''];
+    }
+    return [$userId, $hash];
+  }
 }

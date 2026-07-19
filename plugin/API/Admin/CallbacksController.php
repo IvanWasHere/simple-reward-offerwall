@@ -36,8 +36,9 @@ class CallbacksController extends RestController
     }
 
     $where = $conds ? ('WHERE ' . implode(' AND ', $conds)) : '';
-    $sql = "SELECT c.id, c.provider_id, c.transaction_id, c.user_id, c.provider_offer_id,
-                   c.amount, c.currency, c.status, c.signature_ok, c.ip, c.created_at,
+    $sql = "SELECT c.id, c.provider_id, c.transaction_id, c.callback_type, c.user_id,
+                   c.provider_offer_id, c.task_id, c.amount, c.currency, c.status,
+                   c.signature_ok, c.ip, c.raw_payload, c.mapped, c.created_at,
                    p.name AS provider_name, u.email AS user_email
               FROM {$c} c
               LEFT JOIN {$pv} p ON p.id = c.provider_id
@@ -48,6 +49,12 @@ class CallbacksController extends RestController
 
     $rows = $args ? $wpdb->get_results($wpdb->prepare($sql, $args)) : $wpdb->get_results($sql);
 
-    return $this->response(['callbacks' => $rows ?: []]);
+    $rows = array_map(static function ($r) {
+      $r->raw_payload = json_decode((string) $r->raw_payload, true) ?: (object) [];
+      $r->mapped = json_decode((string) $r->mapped, true) ?: (object) [];
+      return $r;
+    }, $rows ?: []);
+
+    return $this->response(['callbacks' => $rows]);
   }
 }

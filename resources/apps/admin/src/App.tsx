@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import { config } from './lib/config';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProvidersPage } from './pages/ProvidersPage';
+import { ProviderDetailPage } from './pages/providers/ProviderDetailPage';
 import { OffersPage } from './pages/OffersPage';
 import { CallbacksPage } from './pages/CallbacksPage';
 import { RewardsPage } from './pages/RewardsPage';
@@ -66,6 +67,8 @@ function Gate() {
         <Route element={<Layout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/providers" element={<ProvidersPage />} />
+          <Route path="/providers/new" element={<ProviderDetailPage />} />
+          <Route path="/providers/:id" element={<ProviderDetailPage />} />
           <Route path="/offers" element={<OffersPage />} />
           <Route path="/callbacks" element={<CallbacksPage />} />
           <Route path="/rewards" element={<RewardsPage />} />

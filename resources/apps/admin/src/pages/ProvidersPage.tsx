@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TableCard } from '../components/TableCard';
 import { ProviderTypeTag, StatusTag } from '../components/StatusTag';
 import { Loading, EmptyState, ErrorState } from '../components/States';
@@ -6,14 +7,11 @@ import { useApiData } from '../hooks/useApiData';
 import { api, ApiError } from '../lib/api';
 import { toast } from '../store/toast';
 import { askConfirm } from '../store/confirm';
-import { ProviderModal } from './providers/ProviderModal';
-import { ProviderCallbacksModal } from './providers/ProviderCallbacksModal';
 import type { Provider } from '../lib/types';
 
 export function ProvidersPage() {
   const { data, loading, error, refetch } = useApiData<{ providers: Provider[] }>('/admin/providers');
-  const [editId, setEditId] = useState<number | 'new' | null>(null);
-  const [callbacksFor, setCallbacksFor] = useState<Provider | null>(null);
+  const navigate = useNavigate();
   const [busy, setBusy] = useState<number | null>(null);
   const rows = data?.providers ?? [];
 
@@ -47,7 +45,7 @@ export function ProvidersPage() {
         title="Providers"
         count={rows.length}
         actions={
-          <button className="btn btn-primary" onClick={() => setEditId('new')}>
+          <button className="btn btn-primary" onClick={() => navigate('/providers/new')}>
             <i className="fa-solid fa-plus" style={{ marginRight: 6 }} />
             Add Provider
           </button>
@@ -80,7 +78,7 @@ export function ProvidersPage() {
                     <ProviderTypeTag type={p.type} />
                   </td>
                   <td>{p.coinRate}</td>
-                  <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.wallPlacement ?? '—'}</td>
+                  <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.type === 'static_api' ? '—' : p.wallPlacement ?? '—'}</td>
                   <td>{p.callbackCount ?? 0}</td>
                   <td>
                     <StatusTag status={p.status} />
@@ -91,10 +89,10 @@ export function ProvidersPage() {
                         <i className="fa-solid fa-rotate" />
                       </button>
                     )}{' '}
-                    <button className="btn btn-ghost btn-icon btn-sm" onClick={() => setCallbacksFor(p)} title="Callbacks">
+                    <button className="btn btn-ghost btn-icon btn-sm" onClick={() => navigate(`/providers/${p.id}`)} title="Callbacks">
                       <i className="fa-solid fa-arrow-right-arrow-left" />
                     </button>{' '}
-                    <button className="btn btn-ghost btn-icon btn-sm" onClick={() => setEditId(p.id)} title="Edit">
+                    <button className="btn btn-ghost btn-icon btn-sm" onClick={() => navigate(`/providers/${p.id}`)} title="Edit">
                       <i className="fa-solid fa-pen-to-square" />
                     </button>{' '}
                     <button className="btn btn-ghost btn-icon btn-sm" style={{ color: 'var(--danger)' }} onClick={() => remove(p)} title="Delete">
@@ -107,24 +105,6 @@ export function ProvidersPage() {
           </table>
         )}
       </TableCard>
-
-      {editId !== null && (
-        <ProviderModal
-          providerId={editId === 'new' ? null : editId}
-          onClose={() => setEditId(null)}
-          onSaved={() => {
-            setEditId(null);
-            refetch();
-          }}
-        />
-      )}
-      {callbacksFor && (
-        <ProviderCallbacksModal
-          provider={callbacksFor}
-          onClose={() => setCallbacksFor(null)}
-          onChanged={refetch}
-        />
-      )}
     </>
   );
 }

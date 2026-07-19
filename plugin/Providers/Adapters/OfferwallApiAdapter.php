@@ -35,9 +35,13 @@ class OfferwallApiAdapter extends AbstractAdapter
     ];
 
     $raw = $this->fetchRawOffers($provider, $context);
-    $offers = array_map(function ($o) use ($provider) {
-      return $this->normalizeOffer($o, $provider) + ['source' => 'api'];
-    }, $raw);
+    $offers = [];
+    foreach ($raw as $o) {
+      $n = $this->normalize($provider, $o);
+      if ($n !== null) {
+        $offers[] = $n + ['source' => 'api'];
+      }
+    }
 
     set_transient($cacheKey, $offers, self::CACHE_TTL);
 

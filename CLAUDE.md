@@ -128,6 +128,12 @@ their clicks, and can delete individual fingerprints
   + `npm run lint:style`. **Tests**: `npm test` (jest). Auto-fix JS style with
   `npx wp-scripts lint-js resources/assets/ --fix` (the WP prettier config is strict).
   The Vite app typechecks via `npx tsc -p resources/apps/user/tsconfig.json --noEmit`.
+  Backend flows are exercised with `wp eval-file tests/*.php` (no PHPUnit) — self-contained,
+  re-runnable callback integration tests (each exits non-zero on failure):
+  `tests/callback-flow-test.php` (ayet: installation/optional log-only vs paid-conversion
+  pending reward + external_identifier user resolution) and `tests/lootably-callback-flow-test.php`
+  (lootably: SHA256-signed postbacks — paid conversion, zero-reward goal, chargeback, bad-signature
+  rejection). Run: `wp eval-file wp-content/plugins/simple-reward-offerwall/tests/<file>`.
 - **Activate / migrate**: `wp plugin activate simple-reward-offerwall` (runs migrations +
   flushes the `/reward` rewrite). In dev, re-run migrations with a
   `wp plugin deactivate && wp plugin activate` cycle; `wp rewrite flush` alone re-registers

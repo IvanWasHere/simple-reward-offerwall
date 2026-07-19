@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
+use SimpleRO\Providers\Schemas\OfferSchemaRegistry;
 use SimpleRO\Services\OfferIngestionService;
 use SimpleRO\WPBones\Routing\API\RestController;
 
@@ -153,6 +154,12 @@ class ProvidersController extends RestController
     $status = (string) $this->request->get_param('status');
     $status = in_array($status, ['active', 'inactive'], true) ? $status : 'active';
 
+    // Optional built-in offer schema; '' = legacy config.field_map mapping.
+    $offerSchema = (string) $this->request->get_param('offer_schema');
+    if ($offerSchema !== '' && !OfferSchemaRegistry::exists($offerSchema)) {
+      return $this->responseError('ro_invalid', __('Unknown offer schema.', 'simple-reward-offerwall'), 422);
+    }
+
     // The URL is a TEMPLATE containing {macro_*} tokens, so it is not a valid URL
     // yet — esc_url_raw() would strip the braces. Store it raw (tags removed), only
     // validating the scheme; the fully-substituted URL is escaped at output time.
@@ -183,6 +190,7 @@ class ProvidersController extends RestController
       'api_key'    => sanitize_text_field((string) $this->request->get_param('api_key')),
       'api_secret' => sanitize_text_field((string) $this->request->get_param('api_secret')),
       'coin_rate'  => max(0, (float) $this->request->get_param('coin_rate')),
+      'offer_schema' => $offerSchema,
       'config'     => wp_json_encode($config),
       'status'     => $status,
     ];
@@ -225,6 +233,7 @@ class ProvidersController extends RestController
       'apiKey'         => $row->api_key,
       'hasApiSecret'   => $row->api_secret !== '',
       'coinRate'       => (float) $row->coin_rate,
+      'offerSchema'    => $row->offer_schema ?? '',
       'config'         => is_array($config) ? $config : (object) [],
       'wallPlacement'  => (is_array($config) && !empty($config['wall_placement'])) ? $config['wall_placement'] : 'all',
       'status'         => $row->status,

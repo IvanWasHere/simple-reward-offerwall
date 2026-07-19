@@ -11,6 +11,7 @@ export interface Provider {
   apiKey: string;
   hasApiSecret: boolean;
   coinRate: number;
+  offerSchema: string;
   config: Record<string, unknown> | Record<string, never>;
   wallPlacement: string;
   status: string;
@@ -22,8 +23,43 @@ export interface ProviderCallback {
   id: number;
   name: string;
   callbackUrl: string;
+  paramMap: Record<string, string>;
+  signatureParam: string;
   signatureAlgo: string;
+  signatureSource: string;
+  ipAllowlist: string;
+  hasSecret: boolean;
   active: boolean;
+}
+
+export interface OfferSchemaMacro {
+  token: string;
+  label: string;
+  description: string;
+}
+
+export interface OfferSchemaField {
+  field: string;
+  key: string;
+  macro: string;
+  label: string;
+  description: string;
+  required: boolean;
+  mapped: boolean;
+}
+
+export interface OfferSchema {
+  key: string;
+  label: string;
+  httpMethod: string;
+  callbackMacros: OfferSchemaMacro[];
+  callbackFields: OfferSchemaField[];
+  postbackTemplate: string;
+  defaultParamMap: Record<string, string>;
+  signatureParam: string;
+  signatureAlgo: string;
+  signatureSource: string;
+  allowsUnsigned: boolean;
 }
 
 export interface OfferRow {
@@ -79,8 +115,15 @@ export interface CallbackAuditRow {
   provider_name: string | null;
   user_email: string | null;
   transaction_id: string;
+  callback_type: string | null;
+  provider_offer_id: string | null;
+  task_id: string | null;
   amount: string;
+  currency: string | null;
   status: string;
   signature_ok: string;
+  ip: string | null;
+  raw_payload: Record<string, unknown>;
+  mapped: Record<string, unknown>;
   created_at: string;
 }

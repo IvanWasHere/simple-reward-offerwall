@@ -33,7 +33,10 @@ class StaticApiAdapter extends AbstractAdapter
     $seen = [];
 
     foreach ($raw as $rawOffer) {
-      $n = $this->normalizeOffer($rawOffer, $provider);
+      $n = $this->normalize($provider, $rawOffer);
+      if ($n === null) {
+        continue;
+      }
       $providerOfferId = $n['providerOfferId'];
       if ($providerOfferId === '') {
         continue;

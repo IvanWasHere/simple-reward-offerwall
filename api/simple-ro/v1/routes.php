@@ -139,6 +139,7 @@ Route::post('/admin/providers/(?P<id>\d+)/callbacks', 'SimpleRO\API\Admin\Provid
 Route::put('/admin/providers/(?P<id>\d+)/callbacks/(?P<cbId>\d+)', 'SimpleRO\API\Admin\ProviderCallbacksController@update', $admin);
 Route::delete('/admin/providers/(?P<id>\d+)/callbacks/(?P<cbId>\d+)', 'SimpleRO\API\Admin\ProviderCallbacksController@destroy', $admin);
 
+Route::get('/admin/offer-schemas', 'SimpleRO\API\Admin\OfferSchemasController@index', $admin);
 Route::post('/admin/providers/(?P<id>\d+)/ingest', 'SimpleRO\API\Admin\ProvidersController@ingest', $admin);
 Route::get('/admin/offers', 'SimpleRO\API\Admin\OffersController@index', $admin);
 Route::put('/admin/offers/(?P<id>\d+)', 'SimpleRO\API\Admin\OffersController@update', $admin);

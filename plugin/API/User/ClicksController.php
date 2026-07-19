@@ -8,6 +8,8 @@ if (!defined('ABSPATH')) {
 
 use SimpleRO\API\Auth\Guard;
 use SimpleRO\Providers\ProviderAdapterFactory;
+use SimpleRO\Services\MacroBuilder;
+use SimpleRO\Services\Settings;
 use SimpleRO\WPBones\Routing\API\RestController;
 
 /**
@@ -75,18 +77,39 @@ class ClicksController extends RestController
         (int) $provider->id,
         $providerOfferId
       ));
-      return $row ? [(string) $row->link, (int) $row->id] : ['', 0];
+      return $row ? [$this->personalize((string) $row->link, $user), (int) $row->id] : ['', 0];
     }
 
     if ($provider->type === 'offerwall_api') {
       $adapter = ProviderAdapterFactory::for($provider);
       foreach ($adapter->fetchOffers($provider, $user) as $offer) {
         if ((string) ($offer['providerOfferId'] ?? '') === $providerOfferId) {
-          return [(string) ($offer['link'] ?? ''), 0];
+          return [$this->personalize((string) ($offer['link'] ?? ''), $user), 0];
         }
       }
     }
 
     return ['', 0];
+  }
+
+  /**
+   * Substitute the per-user macros a provider tracking link carries so the S2S
+   * postback can identify this user. Ayet uses {external_identifier}; the
+   * composite external id embeds the user's id + hash. Unknown tokens survive.
+   */
+  private function personalize(string $link, object $user): string
+  {
+    if ($link === '') {
+      return '';
+    }
+    $hash = (string) ($user->unique_user_hash ?? '');
+    return MacroBuilder::substitute($link, [
+      'external_identifier' => Settings::buildExternalId((int) $user->id, $hash),
+      'external_id'         => Settings::buildExternalId((int) $user->id, $hash),
+      'user_id'             => (int) $user->id,
+      // Lootably link macro; the SHA256 postback signature authenticates it.
+      'userID'              => (int) $user->id,
+      'user_hash'           => $hash,
+    ]);
   }
 }

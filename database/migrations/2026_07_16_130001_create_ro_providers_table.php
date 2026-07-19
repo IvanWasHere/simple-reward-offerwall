@@ -13,6 +13,8 @@ use SimpleRO\WPBones\Database\Migrations\Migration;
  * render), or 'static_api' (pulled on a schedule). `url` is a template holding
  * {macro_*} tokens; `macros` maps each token to a source key (user_id, adslot_id,
  * session_id, user_hash). `coin_rate` = coins granted per 1.00 of provider payout.
+ * `offer_schema` names a built-in OfferSchema (OfferSchemaRegistry) that drives
+ * offer field mapping + callback interpretation ('' = legacy config.field_map).
  */
 return new class extends Migration {
   public function up()
@@ -30,6 +32,7 @@ return new class extends Migration {
         api_key varchar(255) NOT NULL default '',
         api_secret varchar(255) NOT NULL default '',
         coin_rate decimal(16,4) NOT NULL default '1.0000',
+        offer_schema varchar(60) NOT NULL default '',
         config longtext NULL,
         status varchar(20) NOT NULL default 'active',
         created_at datetime NULL default NULL,

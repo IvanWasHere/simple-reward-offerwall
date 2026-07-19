@@ -16,7 +16,7 @@ export function CallbacksPage() {
     const q = search.trim().toLowerCase();
     if (!q) return rows;
     return rows.filter((c) =>
-      [c.provider_name, c.user_email, c.transaction_id].some((f) =>
+      [c.provider_name, c.user_email, c.transaction_id, c.callback_type].some((f) =>
         (f || '').toString().toLowerCase().includes(q)
       )
     );
@@ -51,6 +51,7 @@ export function CallbacksPage() {
               <th>Provider</th>
               <th>User</th>
               <th>Transaction</th>
+              <th>Type</th>
               <th>Amount</th>
               <th>Signature</th>
               <th>Status</th>
@@ -65,6 +66,7 @@ export function CallbacksPage() {
                 <td style={{ fontSize: 12 }}>
                   <code>{c.transaction_id}</code>
                 </td>
+                <td>{c.callback_type ? <span className="tag tag-blue">{c.callback_type}</span> : '—'}</td>
                 <td>{c.amount}</td>
                 <td>
                   {String(c.signature_ok) === '1' ? (
