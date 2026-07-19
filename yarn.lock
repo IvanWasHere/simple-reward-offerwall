@@ -2842,11 +2842,6 @@
     "@testing-library/dom" "^10.0.0"
     "@types/react-dom" "^18.0.0"
 
-"@thumbmarkjs/thumbmarkjs@^1.10.1":
-  version "1.10.1"
-  resolved "https://registry.npmjs.org/@thumbmarkjs/thumbmarkjs/-/thumbmarkjs-1.10.1.tgz"
-  integrity sha512-BH7HP3g+NeIXgcYDxtNjx2wfO5cHaH6DjkoDzi4adYe0fknkQZABtKag+2j75p5p8mGMhl9mq2Ee5m1UosYPUw==
-
 "@tootallnate/quickjs-emscripten@^0.23.0":
   version "0.23.0"
   resolved "https://registry.npmjs.org/@tootallnate/quickjs-emscripten/-/quickjs-emscripten-0.23.0.tgz"
@@ -6606,6 +6601,11 @@ find-up@^6.3.0:
   dependencies:
     locate-path "^7.1.0"
     path-exists "^5.0.0"
+
+fingerprinter-js@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.npmjs.org/fingerprinter-js/-/fingerprinter-js-2.0.1.tgz"
+  integrity sha512-Gy7utu+/XkyOGKZdSeB9ogKf+ELU6lbPsewZCA98yfopUYFHXYXnIOXfESODgLXpCtvOJLSe18RnOImvJtmP2w==
 
 flat-cache@^3.0.4:
   version "3.2.0"

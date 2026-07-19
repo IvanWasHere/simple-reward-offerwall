@@ -8,10 +8,13 @@ use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
  * simplerewardoffer_fingerprints — a device/browser fingerprint captured each time a user logs
- * in (client collects navigator/screen/timezone signals; the server adds IP +
- * request user-agent). visitor_id is a sha256 of the stable signal subset so the
- * same device is recognisable across logins. Shown to admins on the user detail
- * page; admins can delete old rows.
+ * in. The client runs fingerprinter-js (19 collectors + bot detection); the server
+ * adds IP + request user-agent. `visitor_id` is the library's stable SHA-256 hash
+ * so the same device is recognisable across logins; `data` holds the FULL library
+ * result (all collectors under `components`, plus confidence/entropy/suspectAnalysis).
+ * The indexed columns (platform/language/timezone/screen) come from a small
+ * navigator summary for filtering/display. Shown to admins on the user detail page;
+ * admins can delete old rows.
  */
 return new class extends Migration {
   public function up()

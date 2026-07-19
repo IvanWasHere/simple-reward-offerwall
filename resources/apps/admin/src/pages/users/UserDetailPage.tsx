@@ -37,9 +37,24 @@ interface Fingerprint {
   language: string;
   timezone: string;
   screen: string;
-  data: Record<string, unknown>;
+  // Full fingerprinter-js result: { fingerprint, components (all collectors),
+  // confidence, entropy, version, suspectAnalysis?: { riskLevel, ... } }.
+  data: {
+    components?: Record<string, unknown>;
+    confidence?: number;
+    entropy?: number;
+    version?: string;
+    suspectAnalysis?: { riskLevel?: string; score?: number };
+    [k: string]: unknown;
+  };
   createdAt: string;
 }
+
+const RISK_COLORS: Record<string, string> = {
+  LOW: 'tag-green',
+  MEDIUM: 'tag-amber',
+  HIGH: 'tag-red',
+};
 
 function Summary({ id }: { id: string }) {
   const { data, loading, error } = useApiData<UserSummary>(`/admin/users/${id}`);
@@ -173,13 +188,43 @@ function Fingerprints({ id }: { id: string }) {
                 <Field label="Screen" value={fp.screen} />
                 <Field label="Timezone" value={fp.timezone} />
                 <Field label="Language" value={fp.language} />
-                <Field label="Cores" value={String((fp.data.hardwareConcurrency as number) ?? '—')} />
-                <Field label="Memory (GB)" value={String((fp.data.deviceMemory as number) ?? '—')} />
-                <Field label="Touch pts" value={String((fp.data.maxTouchPoints as number) ?? '—')} />
+                <Field label="Confidence" value={fp.data.confidence != null ? `${fp.data.confidence}%` : '—'} />
+                <Field label="Entropy" value={fp.data.entropy != null ? `${fp.data.entropy} bits` : '—'} />
+                <div>
+                  <span style={{ color: 'var(--text-muted)' }}>Bot risk: </span>
+                  {fp.data.suspectAnalysis?.riskLevel ? (
+                    <span className={`tag ${RISK_COLORS[fp.data.suspectAnalysis.riskLevel] ?? 'tag-gray'}`}>
+                      {fp.data.suspectAnalysis.riskLevel}
+                    </span>
+                  ) : (
+                    '—'
+                  )}
+                </div>
               </div>
               <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-muted)', wordBreak: 'break-word' }}>
                 {fp.userAgent}
               </div>
+              <details style={{ marginTop: 8 }}>
+                <summary style={{ cursor: 'pointer', fontSize: 12, color: 'var(--accent)' }}>
+                  All collectors{fp.data.components ? ` (${Object.keys(fp.data.components).length})` : ''}
+                  {fp.data.version ? ` · fingerprinter-js v${fp.data.version}` : ''}
+                </summary>
+                <pre
+                  style={{
+                    marginTop: 6,
+                    maxHeight: 280,
+                    overflow: 'auto',
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: 10,
+                    fontSize: 11,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {JSON.stringify(fp.data.components ?? fp.data, null, 2)}
+                </pre>
+              </details>
             </div>
           ))}
         </div>

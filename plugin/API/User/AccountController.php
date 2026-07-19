@@ -148,13 +148,21 @@ class AccountController extends RestController
       return isset($components[$key]) && is_scalar($components[$key]) ? sanitize_text_field((string) $components[$key]) : '';
     };
 
-    // Prefer the ThumbmarkJS hash sent by the client; otherwise derive a stable
-    // fallback id from the summary signals.
+    // Prefer the fingerprinter-js hash sent by the client; otherwise derive a
+    // stable fallback id from the summary signals.
     $visitorId = preg_replace('/[^a-f0-9]/i', '', (string) $this->request->get_param('visitorId'));
     if ($visitorId === '') {
       $visitorId = hash('sha256', implode('|', [
         $get('userAgent'), $get('platform'), $get('timezone'), $get('screen'), $get('vendor'),
       ]));
+    }
+
+    // The full fingerprinter-js result (all 19 collectors under `components`, plus
+    // confidence / entropy / suspectAnalysis) is stored verbatim in `data`. The
+    // flat `components` summary only feeds the indexed display columns.
+    $full = $this->request->get_param('data');
+    if (!is_array($full) || !$full) {
+      $full = $components;
     }
 
     $wpdb->insert(
@@ -168,7 +176,7 @@ class AccountController extends RestController
         'language'   => substr($get('language'), 0, 60),
         'timezone'   => substr($get('timezone'), 0, 80),
         'screen'     => substr($get('screen'), 0, 40),
-        'data'       => wp_json_encode($components),
+        'data'       => wp_json_encode($full),
         'created_at' => gmdate('Y-m-d H:i:s'),
       ],
       ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
