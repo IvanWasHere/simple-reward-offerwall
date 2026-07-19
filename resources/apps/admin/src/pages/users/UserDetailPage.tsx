@@ -34,7 +34,9 @@ interface Fingerprint {
   ip: string;
   userAgent: string;
   platform: string;
+  country: string;
   language: string;
+  languages: string;
   timezone: string;
   screen: string;
   // Full fingerprinter-js result: { fingerprint, components (all collectors),
@@ -184,10 +186,11 @@ function Fingerprints({ id }: { id: string }) {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(180px,1fr))', gap: '6px 20px', fontSize: 13 }}>
                 <Field label="IP" value={fp.ip} />
+                <Field label="Country" value={fp.country || '—'} />
                 <Field label="Platform" value={fp.platform} />
                 <Field label="Screen" value={fp.screen} />
                 <Field label="Timezone" value={fp.timezone} />
-                <Field label="Language" value={fp.language} />
+                <Field label="Languages" value={fp.languages || fp.language || '—'} />
                 <Field label="Confidence" value={fp.data.confidence != null ? `${fp.data.confidence}%` : '—'} />
                 <Field label="Entropy" value={fp.data.entropy != null ? `${fp.data.entropy} bits` : '—'} />
                 <div>

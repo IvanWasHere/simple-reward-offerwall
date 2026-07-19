@@ -204,7 +204,7 @@ class UsersController extends RestController
     $id = (int) $this->request->get_param('id');
 
     $rows = $wpdb->get_results($wpdb->prepare(
-      "SELECT id, visitor_id, ip, user_agent, platform, language, timezone, screen, data, created_at
+      "SELECT id, visitor_id, ip, user_agent, platform, country, language, languages, timezone, screen, data, created_at
          FROM {$wpdb->prefix}simplerewardoffer_fingerprints
         WHERE user_id = %d
         ORDER BY created_at DESC, id DESC
@@ -219,7 +219,9 @@ class UsersController extends RestController
         'ip'        => $r->ip,
         'userAgent' => $r->user_agent,
         'platform'  => $r->platform,
+        'country'   => $r->country,
         'language'  => $r->language,
+        'languages' => $r->languages,
         'timezone'  => $r->timezone,
         'screen'    => $r->screen,
         'data'      => json_decode((string) $r->data, true) ?: (object) [],

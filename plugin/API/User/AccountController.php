@@ -165,21 +165,27 @@ class AccountController extends RestController
       $full = $components;
     }
 
+    $ip = $this->clientIp();
+
     $wpdb->insert(
       $wpdb->prefix . 'simplerewardoffer_fingerprints',
       [
         'user_id'    => (int) $user->id,
         'visitor_id' => $visitorId,
-        'ip'         => $this->clientIp(),
+        'ip'         => $ip,
         'user_agent' => substr($get('userAgent') ?: (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 500),
         'platform'   => substr($get('platform'), 0, 120),
+        // Country resolved from the request IP; all navigator languages (not just
+        // the primary) preserved alongside the primary `language`.
+        'country'    => \SimpleRewardOffer\Services\GeoIp::country($ip),
         'language'   => substr($get('language'), 0, 60),
+        'languages'  => substr($get('languages'), 0, 190),
         'timezone'   => substr($get('timezone'), 0, 80),
         'screen'     => substr($get('screen'), 0, 40),
         'data'       => wp_json_encode($full),
         'created_at' => gmdate('Y-m-d H:i:s'),
       ],
-      ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
+      ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
     );
 
     return $this->response(['ok' => true, 'visitorId' => $visitorId], 201);
