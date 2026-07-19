@@ -43,7 +43,8 @@ const SCHEMA_TYPES = ['static_api', 'offerwall_api'];
 export function ProviderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isNew = id === 'new';
+  // Treat 'new' (or a missing id) as the create form — never try to load it.
+  const isNew = id === 'new' || !id;
   const providerId = isNew ? null : Number(id);
 
   const [provider, setProvider] = useState<Provider | null>(null);
@@ -80,7 +81,7 @@ export function ProviderDetailPage() {
   };
 
   useEffect(() => {
-    if (isNew || providerId === null) return;
+    if (isNew || providerId === null || Number.isNaN(providerId)) return;
     setLoading(true);
     api<{ provider: Provider }>(`/admin/providers/${providerId}`)
       .then(({ provider: p }) => hydrate(p))

@@ -23,6 +23,7 @@ class OfferSchemaRegistry
       new AyetStudiosSchema(),
       new LootablySchema(),
       new AdscendMediaSchema(),
+      new RevUSchema(),
     ];
   }
 

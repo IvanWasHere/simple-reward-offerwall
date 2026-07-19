@@ -134,7 +134,8 @@ their clicks, and can delete individual fingerprints
   re-runnable callback integration tests (each exits non-zero on failure): `tests/callback-flow-test.php`
   (ayet), `tests/lootably-callback-flow-test.php` (lootably: SHA256-signed postbacks), and
   `tests/adscendmedia-callback-flow-test.php` (adscend: payout×coin_rate credit, reversal → negative,
-  unknown-sub1 ignored). Each builds a provider + offers + all-macros callback and fires postbacks.
+  unknown-sub1 ignored), and `tests/revu-callback-flow-test.php` (revu: coins credit, status=reversal →
+  negative). Each builds a provider + offers + all-macros callback and fires postbacks.
   Run: `wp eval-file wp-content/plugins/simple-reward-offerwall/tests/<file>`.
 - **Activate / migrate**: `wp plugin activate simple-reward-offerwall` (runs migrations +
   flushes the `/reward` rewrite). In dev, re-run migrations with a

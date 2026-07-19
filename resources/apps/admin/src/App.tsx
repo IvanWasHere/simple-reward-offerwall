@@ -67,7 +67,9 @@ function Gate() {
         <Route element={<Layout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/providers" element={<ProvidersPage />} />
-          <Route path="/providers/new" element={<ProviderDetailPage />} />
+          {/* `/providers/new` matches :id with id="new" (ProviderDetailPage treats
+              that as the create form). A separate static route would shadow this and
+              leave useParams().id undefined. */}
           <Route path="/providers/:id" element={<ProviderDetailPage />} />
           <Route path="/offers" element={<OffersPage />} />
           <Route path="/callbacks" element={<CallbacksPage />} />
