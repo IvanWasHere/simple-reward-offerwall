@@ -63,27 +63,46 @@ function Summary({ id }: { id: string }) {
   if (loading) return <Loading />;
   if (error || !data) return <ErrorState message={error || 'User not found.'} />;
   const u = data.user;
-  const cell = (label: string, value: React.ReactNode) => (
-    <div>
+  // Each field: fixed label + value. `wrap` lets a long value (e.g. a very long
+  // display name) break within a bounded width instead of pushing the row; other
+  // fields stay on one line (whiteSpace: nowrap).
+  const cell = (label: string, value: React.ReactNode, wrap = false) => (
+    <div style={{ flex: '0 0 auto', minWidth: 0 }}>
       <div className="form-label">{label}</div>
-      <div style={{ fontSize: 15 }}>{value}</div>
+      <div
+        style={{
+          fontSize: 15,
+          maxWidth: wrap ? 320 : undefined,
+          whiteSpace: wrap ? 'normal' : 'nowrap',
+          overflowWrap: wrap ? 'anywhere' : undefined,
+          wordBreak: wrap ? 'break-word' : undefined,
+        }}
+      >
+        {value}
+      </div>
     </div>
   );
   return (
-    <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap', padding: '4px 4px 8px' }}>
-      {cell('Name', u.displayName || '—')}
-      {cell('Role', <RoleTag role={u.type} />)}
-      {cell('Status', <StatusTag status={u.status} />)}
-      {cell(
-        'Balance',
-        <span style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, color: 'var(--accent)' }}>
-          {fmtCoins(u.balance)} coins
-        </span>
-      )}
-      {cell('Rewards', data.counts.rewards)}
-      {cell('Redemptions', data.counts.redemptions)}
-      {cell('Tickets', data.counts.tickets)}
-      {cell('Joined', fmtDate(u.createdAt))}
+    // The card clips overflow (rounded corners), so make the summary its own
+    // horizontally-scrollable strip: fields spread out in a row, and a long name
+    // stays fully visible via wrapping and/or horizontal scroll.
+    <div style={{ overflowX: 'auto', padding: '4px 4px 8px' }}>
+      <div style={{ display: 'flex', gap: 28, alignItems: 'flex-start', width: 'max-content', minWidth: '100%' }}>
+        {cell('Name', u.displayName || '—', true)}
+        {cell('Email', u.email || '—', true)}
+        {cell('Role', <RoleTag role={u.type} />)}
+        {cell('Status', <StatusTag status={u.status} />)}
+        {cell(
+          'Balance',
+          <span style={{ fontFamily: '"Space Grotesk", sans-serif', fontWeight: 700, color: 'var(--accent)' }}>
+            {fmtCoins(u.balance)} coins
+          </span>
+        )}
+        {cell('Rewards', data.counts.rewards)}
+        {cell('Redemptions', data.counts.redemptions)}
+        {cell('Tickets', data.counts.tickets)}
+        {cell('Joined', fmtDate(u.createdAt))}
+      </div>
     </div>
   );
 }

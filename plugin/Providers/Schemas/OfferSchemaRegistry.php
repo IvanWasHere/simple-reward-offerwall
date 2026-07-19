@@ -22,6 +22,7 @@ class OfferSchemaRegistry
     return [
       new AyetStudiosSchema(),
       new LootablySchema(),
+      new AdscendMediaSchema(),
     ];
   }
 
