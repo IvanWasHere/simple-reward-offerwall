@@ -1,17 +1,17 @@
 <?php
 
-namespace SimpleRO\Models;
+namespace SimpleRewardOffer\Models;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Model;
+use SimpleRewardOffer\WPBones\Database\Model;
 
 /**
- * RoPasswordReset — maps to wp_ro_password_resets. See RoUser note on escaping.
+ * RoPasswordReset — maps to wp_simplerewardoffer_password_resets. See RoUser note on escaping.
  */
 class RoPasswordReset extends Model
 {
-  protected $table = 'ro_password_resets';
+  protected $table = 'simplerewardoffer_password_resets';
 }

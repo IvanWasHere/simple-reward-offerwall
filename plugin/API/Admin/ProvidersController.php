@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Providers\Schemas\OfferSchemaRegistry;
-use SimpleRO\Services\OfferIngestionService;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\Providers\Schemas\OfferSchemaRegistry;
+use SimpleRewardOffer\Services\OfferIngestionService;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * ProvidersController (admin) — CRUD for offerwall providers.
@@ -28,7 +28,7 @@ class ProvidersController extends RestController
     $id = (int) $this->request->get_param('id');
 
     $provider = $wpdb->get_row($wpdb->prepare(
-      "SELECT * FROM {$wpdb->prefix}ro_providers WHERE id = %d LIMIT 1",
+      "SELECT * FROM {$wpdb->prefix}simplerewardoffer_providers WHERE id = %d LIMIT 1",
       $id
     ));
     if (!$provider) {
@@ -50,8 +50,8 @@ class ProvidersController extends RestController
   public function index()
   {
     global $wpdb;
-    $p = $wpdb->prefix . 'ro_providers';
-    $cb = $wpdb->prefix . 'ro_provider_callbacks';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
+    $cb = $wpdb->prefix . 'simplerewardoffer_provider_callbacks';
 
     $rows = $wpdb->get_results(
       "SELECT p.*, (SELECT COUNT(*) FROM {$cb} c WHERE c.provider_id = p.id) AS callback_count
@@ -66,7 +66,7 @@ class ProvidersController extends RestController
   {
     global $wpdb;
     $id = (int) $this->request->get_param('id');
-    $p = $wpdb->prefix . 'ro_providers';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
     $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$p} WHERE id = %d LIMIT 1", $id));
 
     if (!$row) {
@@ -89,7 +89,7 @@ class ProvidersController extends RestController
     // All columns bind safely as strings (%s); coin_rate is a DECIMAL and accepts
     // a numeric string. Letting $wpdb default to %s avoids format/column ordering bugs.
     $wpdb->insert(
-      $wpdb->prefix . 'ro_providers',
+      $wpdb->prefix . 'simplerewardoffer_providers',
       $data + ['unique_provider_hash' => bin2hex(random_bytes(16)), 'created_at' => $now, 'updated_at' => $now]
     );
 
@@ -100,7 +100,7 @@ class ProvidersController extends RestController
   {
     global $wpdb;
     $id = (int) $this->request->get_param('id');
-    $p = $wpdb->prefix . 'ro_providers';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
 
     if (!$wpdb->get_var($wpdb->prepare("SELECT id FROM {$p} WHERE id = %d", $id))) {
       return $this->responseError('ro_not_found', __('Provider not found.', 'simple-reward-offerwall'), 404);
@@ -122,8 +122,8 @@ class ProvidersController extends RestController
     global $wpdb;
     $id = (int) $this->request->get_param('id');
 
-    $wpdb->delete($wpdb->prefix . 'ro_provider_callbacks', ['provider_id' => $id], ['%d']);
-    $deleted = $wpdb->delete($wpdb->prefix . 'ro_providers', ['id' => $id], ['%d']);
+    $wpdb->delete($wpdb->prefix . 'simplerewardoffer_provider_callbacks', ['provider_id' => $id], ['%d']);
+    $deleted = $wpdb->delete($wpdb->prefix . 'simplerewardoffer_providers', ['id' => $id], ['%d']);
 
     if (!$deleted) {
       return $this->responseError('ro_not_found', __('Provider not found.', 'simple-reward-offerwall'), 404);
@@ -211,7 +211,7 @@ class ProvidersController extends RestController
   private function find(int $id): array
   {
     global $wpdb;
-    $p = $wpdb->prefix . 'ro_providers';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
     return $this->present($wpdb->get_row($wpdb->prepare("SELECT * FROM {$p} WHERE id = %d", $id)));
   }
 

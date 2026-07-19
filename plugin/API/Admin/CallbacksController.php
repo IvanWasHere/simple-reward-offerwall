@@ -1,12 +1,12 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * CallbacksController (admin) — read-only audit log of received S2S postbacks.
@@ -16,9 +16,9 @@ class CallbacksController extends RestController
   public function index()
   {
     global $wpdb;
-    $c = $wpdb->prefix . 'ro_callbacks';
-    $pv = $wpdb->prefix . 'ro_providers';
-    $u = $wpdb->prefix . 'ro_users';
+    $c = $wpdb->prefix . 'simplerewardoffer_callbacks';
+    $pv = $wpdb->prefix . 'simplerewardoffer_providers';
+    $u = $wpdb->prefix . 'simplerewardoffer_users';
 
     $conds = [];
     $args = [];

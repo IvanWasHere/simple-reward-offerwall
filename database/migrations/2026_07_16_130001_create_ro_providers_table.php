@@ -4,10 +4,10 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_providers — an offerwall network integration.
+ * simplerewardoffer_providers — an offerwall network integration.
  *
  * type: 'iframe' (web offerwall shown in an <iframe>), 'offerwall_api' (JSON we
  * render), or 'static_api' (pulled on a schedule). `url` is a template holding
@@ -20,7 +20,7 @@ return new class extends Migration {
   public function up()
   {
     $this->create(
-      'ro_providers',
+      'simplerewardoffer_providers',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         unique_provider_hash char(32) NOT NULL default '',

@@ -1,8 +1,8 @@
 /**
  * Boot object injected by the PHP takeover (SpaRouteServiceProvider) as
- * `window.SimpleRO`. Shape mirrors SimpleRO\Services\SpaBoot::data().
+ * `window.SimpleRewardOffer`. Shape mirrors SimpleRewardOffer\Services\SpaBoot::data().
  */
-export interface SimpleROConfig {
+export interface SimpleRewardOfferConfig {
   restBase: string;
   app: 'user' | 'admin' | 'support';
   appName: string;
@@ -17,8 +17,8 @@ export interface SimpleROConfig {
 
 declare global {
   interface Window {
-    SimpleRO: SimpleROConfig;
+    SimpleRewardOffer: SimpleRewardOfferConfig;
   }
 }
 
-export const config = (): SimpleROConfig => window.SimpleRO;
+export const config = (): SimpleRewardOfferConfig => window.SimpleRewardOffer;

@@ -1,13 +1,13 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Providers\Schemas\OfferSchemaRegistry;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\Providers\Schemas\OfferSchemaRegistry;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * ProviderCallbacksController (admin) — CRUD for a provider's S2S callback configs.
@@ -21,7 +21,7 @@ class ProviderCallbacksController extends RestController
   {
     global $wpdb;
     $providerId = (int) $this->request->get_param('id');
-    $t = $wpdb->prefix . 'ro_provider_callbacks';
+    $t = $wpdb->prefix . 'simplerewardoffer_provider_callbacks';
 
     $rows = $wpdb->get_results($wpdb->prepare(
       "SELECT * FROM {$t} WHERE provider_id = %d ORDER BY id DESC",
@@ -36,7 +36,7 @@ class ProviderCallbacksController extends RestController
     global $wpdb;
     $providerId = (int) $this->request->get_param('id');
 
-    if (!$wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}ro_providers WHERE id = %d", $providerId))) {
+    if (!$wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}simplerewardoffer_providers WHERE id = %d", $providerId))) {
       return $this->responseError('ro_not_found', __('Provider not found.', 'simple-reward-offerwall'), 404);
     }
 
@@ -47,7 +47,7 @@ class ProviderCallbacksController extends RestController
 
     $now = gmdate('Y-m-d H:i:s');
     $wpdb->insert(
-      $wpdb->prefix . 'ro_provider_callbacks',
+      $wpdb->prefix . 'simplerewardoffer_provider_callbacks',
       $data + [
         'provider_id' => $providerId,
         'unique_hash' => bin2hex(random_bytes(16)),
@@ -63,7 +63,7 @@ class ProviderCallbacksController extends RestController
   {
     global $wpdb;
     $cbId = (int) $this->request->get_param('cbId');
-    $t = $wpdb->prefix . 'ro_provider_callbacks';
+    $t = $wpdb->prefix . 'simplerewardoffer_provider_callbacks';
 
     $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$t} WHERE id = %d", $cbId));
     if (!$existing) {
@@ -85,7 +85,7 @@ class ProviderCallbacksController extends RestController
   {
     global $wpdb;
     $cbId = (int) $this->request->get_param('cbId');
-    $deleted = $wpdb->delete($wpdb->prefix . 'ro_provider_callbacks', ['id' => $cbId], ['%d']);
+    $deleted = $wpdb->delete($wpdb->prefix . 'simplerewardoffer_provider_callbacks', ['id' => $cbId], ['%d']);
 
     if (!$deleted) {
       return $this->responseError('ro_not_found', __('Callback not found.', 'simple-reward-offerwall'), 404);
@@ -116,7 +116,7 @@ class ProviderCallbacksController extends RestController
     $providerId = (int) $this->request->get_param('id');
     $schema = OfferSchemaRegistry::for(
       (string) $wpdb->get_var($wpdb->prepare(
-        "SELECT offer_schema FROM {$wpdb->prefix}ro_providers WHERE id = %d",
+        "SELECT offer_schema FROM {$wpdb->prefix}simplerewardoffer_providers WHERE id = %d",
         $providerId
       ))
     );
@@ -195,7 +195,7 @@ class ProviderCallbacksController extends RestController
   private function find(int $id): array
   {
     global $wpdb;
-    $t = $wpdb->prefix . 'ro_provider_callbacks';
+    $t = $wpdb->prefix . 'simplerewardoffer_provider_callbacks';
     return $this->present($wpdb->get_row($wpdb->prepare("SELECT * FROM {$t} WHERE id = %d", $id)));
   }
 
@@ -209,7 +209,7 @@ class ProviderCallbacksController extends RestController
       'providerId'      => (int) $row->provider_id,
       'name'            => $row->name,
       'uniqueHash'      => $row->unique_hash,
-      'callbackUrl'     => esc_url_raw(rest_url('simple-ro/v1/callback/' . $row->unique_hash)),
+      'callbackUrl'     => esc_url_raw(rest_url('simplerewardoffer/v1/callback/' . $row->unique_hash)),
       'paramMap'        => json_decode((string) $row->param_map, true) ?: (object) [],
       'signatureParam'  => $row->signature_param,
       'signatureAlgo'   => $row->signature_algo,

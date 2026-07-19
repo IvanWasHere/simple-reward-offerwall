@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\API\User;
+namespace SimpleRewardOffer\API\User;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Services\ReferralService;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Services\ReferralService;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * ReferralController — the signed-in user's referral code, share URL, and stats.

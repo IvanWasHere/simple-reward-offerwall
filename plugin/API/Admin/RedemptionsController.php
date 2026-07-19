@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Services\LedgerService;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Services\LedgerService;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * RedemptionsController (admin) — the redemption-approval queue.
@@ -24,9 +24,9 @@ class RedemptionsController extends RestController
     $status = (string) $this->request->get_param('status');
     $status = in_array($status, ['pending', 'approved', 'rejected'], true) ? $status : 'pending';
 
-    $r = $wpdb->prefix . 'ro_redemptions';
-    $p = $wpdb->prefix . 'ro_payouts';
-    $u = $wpdb->prefix . 'ro_users';
+    $r = $wpdb->prefix . 'simplerewardoffer_redemptions';
+    $p = $wpdb->prefix . 'simplerewardoffer_payouts';
+    $u = $wpdb->prefix . 'simplerewardoffer_users';
 
     $rows = $wpdb->get_results($wpdb->prepare(
       "SELECT rd.id, rd.user_id, rd.coins_spent, rd.status, rd.created_at,
@@ -48,7 +48,7 @@ class RedemptionsController extends RestController
     global $wpdb;
     $id = (int) $this->request->get_param('id');
     $admin = Guard::user($this->request);
-    $r = $wpdb->prefix . 'ro_redemptions';
+    $r = $wpdb->prefix . 'simplerewardoffer_redemptions';
 
     $wpdb->query('START TRANSACTION');
 
@@ -82,7 +82,7 @@ class RedemptionsController extends RestController
     global $wpdb;
     $id = (int) $this->request->get_param('id');
     $admin = Guard::user($this->request);
-    $r = $wpdb->prefix . 'ro_redemptions';
+    $r = $wpdb->prefix . 'simplerewardoffer_redemptions';
 
     $wpdb->query('START TRANSACTION');
 
@@ -109,7 +109,7 @@ class RedemptionsController extends RestController
 
     // Restore finite stock (leave unlimited stock = -1 untouched).
     $wpdb->query($wpdb->prepare(
-      "UPDATE {$wpdb->prefix}ro_payouts SET stock = stock + 1 WHERE id = %d AND stock >= 0",
+      "UPDATE {$wpdb->prefix}simplerewardoffer_payouts SET stock = stock + 1 WHERE id = %d AND stock >= 0",
       (int) $rd->payout_id
     ));
 

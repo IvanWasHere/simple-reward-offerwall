@@ -22,8 +22,8 @@ msgstr "WP Kirk ReactJS Boilerplate"
 
 #. Plugin URI of the plugin
 #: simple-reward-offerwall.php
-msgid "https://github.com/wpbones/SimpleRO-ReactJS-Boilerplate"
-msgstr "https://github.com/wpbones/SimpleRO-ReactJS-Boilerplate"
+msgid "https://github.com/wpbones/SimpleRewardOffer-ReactJS-Boilerplate"
+msgstr "https://github.com/wpbones/SimpleRewardOffer-ReactJS-Boilerplate"
 
 #. Description of the plugin
 #: simple-reward-offerwall.php

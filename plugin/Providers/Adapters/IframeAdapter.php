@@ -1,13 +1,13 @@
 <?php
 
-namespace SimpleRO\Providers\Adapters;
+namespace SimpleRewardOffer\Providers\Adapters;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Services\MacroBuilder;
-use SimpleRO\Services\Settings;
+use SimpleRewardOffer\Services\MacroBuilder;
+use SimpleRewardOffer\Services\Settings;
 
 /**
  * IframeAdapter — a web offerwall opened in an <iframe>. Builds the per-user URL

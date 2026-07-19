@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Services\LedgerService;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Services\LedgerService;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * UsersController (admin) — manage accounts: search, block/unblock, change type.
@@ -22,8 +22,8 @@ class UsersController extends RestController
   public function index()
   {
     global $wpdb;
-    $u = $wpdb->prefix . 'ro_users';
-    $l = $wpdb->prefix . 'ro_coin_ledger';
+    $u = $wpdb->prefix . 'simplerewardoffer_users';
+    $l = $wpdb->prefix . 'simplerewardoffer_coin_ledger';
 
     $conds = [];
     $args = [];
@@ -67,7 +67,7 @@ class UsersController extends RestController
     $id = (int) $this->request->get_param('id');
 
     $u = $wpdb->get_row($wpdb->prepare(
-      "SELECT id, email, type, status, display_name, created_at FROM {$wpdb->prefix}ro_users WHERE id = %d",
+      "SELECT id, email, type, status, display_name, created_at FROM {$wpdb->prefix}simplerewardoffer_users WHERE id = %d",
       $id
     ));
     if (!$u) {
@@ -75,9 +75,9 @@ class UsersController extends RestController
     }
 
     $counts = [
-      'rewards'     => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}ro_rewards WHERE user_id = %d", $id)),
-      'redemptions' => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}ro_redemptions WHERE user_id = %d", $id)),
-      'tickets'     => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}ro_support_requests WHERE user_id = %d", $id)),
+      'rewards'     => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}simplerewardoffer_rewards WHERE user_id = %d", $id)),
+      'redemptions' => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}simplerewardoffer_redemptions WHERE user_id = %d", $id)),
+      'tickets'     => (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}simplerewardoffer_support_requests WHERE user_id = %d", $id)),
     ];
 
     return $this->response([
@@ -93,7 +93,7 @@ class UsersController extends RestController
     $me = Guard::user($this->request);
 
     $current = $wpdb->get_row($wpdb->prepare(
-      "SELECT id, type, status FROM {$wpdb->prefix}ro_users WHERE id = %d",
+      "SELECT id, type, status FROM {$wpdb->prefix}simplerewardoffer_users WHERE id = %d",
       $id
     ));
     if (!$current) {
@@ -136,7 +136,7 @@ class UsersController extends RestController
     }
 
     $update['updated_at'] = gmdate('Y-m-d H:i:s');
-    $wpdb->update($wpdb->prefix . 'ro_users', $update, ['id' => $id], null, ['%d']);
+    $wpdb->update($wpdb->prefix . 'simplerewardoffer_users', $update, ['id' => $id], null, ['%d']);
 
     // Any privilege/status change invalidates existing sessions.
     if ($typeChanged || $blocked) {
@@ -144,7 +144,7 @@ class UsersController extends RestController
     }
 
     return $this->response(['user' => $this->present($wpdb->get_row($wpdb->prepare(
-      "SELECT id, email, type, status, display_name, created_at FROM {$wpdb->prefix}ro_users WHERE id = %d",
+      "SELECT id, email, type, status, display_name, created_at FROM {$wpdb->prefix}simplerewardoffer_users WHERE id = %d",
       $id
     )))]);
   }
@@ -160,13 +160,13 @@ class UsersController extends RestController
     global $wpdb;
     $id = (int) $this->request->get_param('id');
 
-    if (!$wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}ro_users WHERE id = %d", $id))) {
+    if (!$wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}simplerewardoffer_users WHERE id = %d", $id))) {
       return $this->responseError('ro_not_found', __('User not found.', 'simple-reward-offerwall'), 404);
     }
 
-    $c = $wpdb->prefix . 'ro_clicked';
-    $o = $wpdb->prefix . 'ro_offers';
-    $p = $wpdb->prefix . 'ro_providers';
+    $c = $wpdb->prefix . 'simplerewardoffer_clicked';
+    $o = $wpdb->prefix . 'simplerewardoffer_offers';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
 
     $rows = $wpdb->get_results($wpdb->prepare(
       "SELECT cl.id, cl.offer_id, cl.provider_offer_id, cl.target_url, cl.created_at,
@@ -205,7 +205,7 @@ class UsersController extends RestController
 
     $rows = $wpdb->get_results($wpdb->prepare(
       "SELECT id, visitor_id, ip, user_agent, platform, language, timezone, screen, data, created_at
-         FROM {$wpdb->prefix}ro_fingerprints
+         FROM {$wpdb->prefix}simplerewardoffer_fingerprints
         WHERE user_id = %d
         ORDER BY created_at DESC, id DESC
         LIMIT 200",
@@ -238,7 +238,7 @@ class UsersController extends RestController
     $fpId = (int) $this->request->get_param('fpId');
 
     $deleted = $wpdb->delete(
-      $wpdb->prefix . 'ro_fingerprints',
+      $wpdb->prefix . 'simplerewardoffer_fingerprints',
       ['id' => $fpId, 'user_id' => $id],
       ['%d', '%d']
     );

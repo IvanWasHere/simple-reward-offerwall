@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\API\User;
+namespace SimpleRewardOffer\API\User;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Services\LedgerService;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Services\LedgerService;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * AccountController — the signed-in user's coins, ledger and rewards.
@@ -27,9 +27,9 @@ class AccountController extends RestController
     global $wpdb;
     $user = Guard::user($this->request);
 
-    $r = $wpdb->prefix . 'ro_rewards';
-    $c = $wpdb->prefix . 'ro_callbacks';
-    $p = $wpdb->prefix . 'ro_providers';
+    $r = $wpdb->prefix . 'simplerewardoffer_rewards';
+    $c = $wpdb->prefix . 'simplerewardoffer_callbacks';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
 
     $rows = $wpdb->get_results($wpdb->prepare(
       "SELECT rw.id, rw.coins_value, rw.status, rw.created_at,
@@ -50,7 +50,7 @@ class AccountController extends RestController
   {
     global $wpdb;
     $user = Guard::user($this->request);
-    $t = $wpdb->prefix . 'ro_coin_ledger';
+    $t = $wpdb->prefix . 'simplerewardoffer_coin_ledger';
 
     $rows = $wpdb->get_results($wpdb->prepare(
       "SELECT id, delta, reason, ref_type, ref_id, created_at
@@ -71,7 +71,7 @@ class AccountController extends RestController
    * Offers the user clicked in the last N days (default 30), deduped to the most
    * recent click per offer — used to attach context to a support ticket.
    *
-   * ONLY real offers from `ro_offers` are returned (INNER JOIN forces offer_id>0).
+   * ONLY real offers from `simplerewardoffer_offers` are returned (INNER JOIN forces offer_id>0).
    * Offerwall opens (offer_id=0, provider's own site) and survey providers are
    * excluded — we don't offer support for those.
    */
@@ -84,9 +84,9 @@ class AccountController extends RestController
     $days = ($days >= 1 && $days <= 90) ? $days : 30;
     $since = gmdate('Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS);
 
-    $c = $wpdb->prefix . 'ro_clicked';
-    $o = $wpdb->prefix . 'ro_offers';
-    $p = $wpdb->prefix . 'ro_providers';
+    $c = $wpdb->prefix . 'simplerewardoffer_clicked';
+    $o = $wpdb->prefix . 'simplerewardoffer_offers';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
 
     $rows = $wpdb->get_results($wpdb->prepare(
       "SELECT cl.id, cl.provider_id, cl.offer_id, cl.provider_offer_id, cl.created_at,
@@ -158,7 +158,7 @@ class AccountController extends RestController
     }
 
     $wpdb->insert(
-      $wpdb->prefix . 'ro_fingerprints',
+      $wpdb->prefix . 'simplerewardoffer_fingerprints',
       [
         'user_id'    => (int) $user->id,
         'visitor_id' => $visitorId,
@@ -197,7 +197,7 @@ class AccountController extends RestController
     global $wpdb;
     $user = Guard::user($this->request);
     $userId = (int) $user->id;
-    $t = $wpdb->prefix . 'ro_users';
+    $t = $wpdb->prefix . 'simplerewardoffer_users';
 
     $update = [];
     $formats = [];

@@ -1,12 +1,12 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * PayoutsController (admin) — CRUD for the redeemable rewards catalog.
@@ -17,7 +17,7 @@ class PayoutsController extends RestController
   public function index()
   {
     global $wpdb;
-    $t = $wpdb->prefix . 'ro_payouts';
+    $t = $wpdb->prefix . 'simplerewardoffer_payouts';
     $rows = $wpdb->get_results("SELECT * FROM {$t} ORDER BY id DESC");
     return $this->response(['payouts' => array_map([$this, 'present'], $rows ?: [])]);
   }
@@ -31,7 +31,7 @@ class PayoutsController extends RestController
     }
 
     $now = gmdate('Y-m-d H:i:s');
-    $wpdb->insert($wpdb->prefix . 'ro_payouts', $data + ['created_at' => $now, 'updated_at' => $now]);
+    $wpdb->insert($wpdb->prefix . 'simplerewardoffer_payouts', $data + ['created_at' => $now, 'updated_at' => $now]);
 
     return $this->response(['payout' => $this->find((int) $wpdb->insert_id)], 201);
   }
@@ -40,7 +40,7 @@ class PayoutsController extends RestController
   {
     global $wpdb;
     $id = (int) $this->request->get_param('id');
-    $t = $wpdb->prefix . 'ro_payouts';
+    $t = $wpdb->prefix . 'simplerewardoffer_payouts';
 
     if (!$wpdb->get_var($wpdb->prepare("SELECT id FROM {$t} WHERE id = %d", $id))) {
       return $this->responseError('ro_not_found', __('Payout not found.', 'simple-reward-offerwall'), 404);
@@ -61,7 +61,7 @@ class PayoutsController extends RestController
   {
     global $wpdb;
     $id = (int) $this->request->get_param('id');
-    $deleted = $wpdb->delete($wpdb->prefix . 'ro_payouts', ['id' => $id], ['%d']);
+    $deleted = $wpdb->delete($wpdb->prefix . 'simplerewardoffer_payouts', ['id' => $id], ['%d']);
 
     if (!$deleted) {
       return $this->responseError('ro_not_found', __('Payout not found.', 'simple-reward-offerwall'), 404);
@@ -107,7 +107,7 @@ class PayoutsController extends RestController
   private function find(int $id): array
   {
     global $wpdb;
-    $t = $wpdb->prefix . 'ro_payouts';
+    $t = $wpdb->prefix . 'simplerewardoffer_payouts';
     return $this->present($wpdb->get_row($wpdb->prepare("SELECT * FROM {$t} WHERE id = %d", $id)));
   }
 

@@ -4,17 +4,17 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_login_attempts — audit + rate-limit source. We count recent failures per
+ * simplerewardoffer_login_attempts — audit + rate-limit source. We count recent failures per
  * (email, ip) inside a sliding window to soft-lock brute-force attempts.
  */
 return new class extends Migration {
   public function up()
   {
     $this->create(
-      'ro_login_attempts',
+      'simplerewardoffer_login_attempts',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         email varchar(190) NOT NULL default '',

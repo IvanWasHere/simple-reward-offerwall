@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\API\User;
+namespace SimpleRewardOffer\API\User;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Services\LedgerService;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Services\LedgerService;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * WheelController — the daily Lucky Wheel.
@@ -16,7 +16,7 @@ use SimpleRO\WPBones\Routing\API\RestController;
  * Segments (label + coins + weight) come from config custom.wheel.segments. The
  * server picks the winning segment by weight and credits the coins; the client is
  * told which index won only so it can animate to it. One spin per UTC day is
- * enforced by UNIQUE(user_id, spin_date) on ro_wheel_spins.
+ * enforced by UNIQUE(user_id, spin_date) on simplerewardoffer_wheel_spins.
  */
 class WheelController extends RestController
 {
@@ -60,7 +60,7 @@ class WheelController extends RestController
     // spin_date keeps the daily unique index as a same-day race guard.
     $suppress = $wpdb->suppress_errors(true);
     $ok = $wpdb->insert(
-      $wpdb->prefix . 'ro_wheel_spins',
+      $wpdb->prefix . 'simplerewardoffer_wheel_spins',
       [
         'user_id'       => $userId,
         'spin_date'     => gmdate('Y-m-d'),
@@ -90,7 +90,7 @@ class WheelController extends RestController
   /** @return array<int,array{label:string,coins:int,weight:int}> */
   private function segments(): array
   {
-    $raw = (array) SimpleRO()->config('custom.wheel.segments', []);
+    $raw = (array) SimpleRewardOffer()->config('custom.wheel.segments', []);
     $out = [];
     foreach ($raw as $s) {
       $out[] = [
@@ -130,7 +130,7 @@ class WheelController extends RestController
   {
     global $wpdb;
     $row = $wpdb->get_row($wpdb->prepare(
-      "SELECT created_at, coins FROM {$wpdb->prefix}ro_wheel_spins WHERE user_id = %d ORDER BY id DESC LIMIT 1",
+      "SELECT created_at, coins FROM {$wpdb->prefix}simplerewardoffer_wheel_spins WHERE user_id = %d ORDER BY id DESC LIMIT 1",
       $userId
     ));
     return $row ? ['createdAt' => $row->created_at, 'coins' => (int) $row->coins] : null;

@@ -26,8 +26,8 @@ if (!defined('ABSPATH')) {
 
 global $wpdb;
 
-use SimpleRO\Providers\Schemas\OfferSchemaRegistry;
-use SimpleRO\Services\Settings;
+use SimpleRewardOffer\Providers\Schemas\OfferSchemaRegistry;
+use SimpleRewardOffer\Services\Settings;
 
 const RO_TEST_PROVIDER = 'ZZ Test — Ayet Callback Flow';
 const RO_TEST_EMAIL    = 'zz-callbackflow@example.test';
@@ -42,7 +42,7 @@ $check = function (string $label, bool $cond, string $detail = '') use (&$result
 
 /** Fire a postback over real HTTP through the REST stack (as ayet would). */
 $fire = function (string $hash, array $params): array {
-  $url = home_url('/wp-json/simple-ro/v1/callback/' . $hash) . '?' . http_build_query($params);
+  $url = home_url('/wp-json/simplerewardoffer/v1/callback/' . $hash) . '?' . http_build_query($params);
   $res = wp_remote_get($url, ['timeout' => 15, 'sslverify' => false]);
   if (is_wp_error($res)) {
     return ['code' => 0, 'body' => ['error' => $res->get_error_message()]];
@@ -56,21 +56,21 @@ $fire = function (string $hash, array $params): array {
 /** Delete every row tied to this test's markers (safe to call before + after). */
 $cleanup = function () use ($wpdb) {
   $p = $wpdb->prefix;
-  $providerIds = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$p}ro_providers WHERE name = %s", RO_TEST_PROVIDER));
-  $userIds = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$p}ro_users WHERE email = %s", RO_TEST_EMAIL));
+  $providerIds = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$p}simplerewardoffer_providers WHERE name = %s", RO_TEST_PROVIDER));
+  $userIds = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$p}simplerewardoffer_users WHERE email = %s", RO_TEST_EMAIL));
 
   if ($userIds) {
     $in = implode(',', array_map('intval', $userIds));
-    $wpdb->query("DELETE FROM {$p}ro_rewards WHERE user_id IN ({$in})");
-    $wpdb->query("DELETE FROM {$p}ro_callbacks WHERE user_id IN ({$in})");
-    $wpdb->query("DELETE FROM {$p}ro_users WHERE id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_rewards WHERE user_id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_callbacks WHERE user_id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_users WHERE id IN ({$in})");
   }
   if ($providerIds) {
     $in = implode(',', array_map('intval', $providerIds));
-    $wpdb->query("DELETE FROM {$p}ro_callbacks WHERE provider_id IN ({$in})");
-    $wpdb->query("DELETE FROM {$p}ro_provider_callbacks WHERE provider_id IN ({$in})");
-    $wpdb->query("DELETE FROM {$p}ro_offers WHERE provider_id IN ({$in})");
-    $wpdb->query("DELETE FROM {$p}ro_providers WHERE id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_callbacks WHERE provider_id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_provider_callbacks WHERE provider_id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_offers WHERE provider_id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_providers WHERE id IN ({$in})");
   }
 };
 
@@ -86,7 +86,7 @@ try {
   $now = gmdate('Y-m-d H:i:s');
 
   // 1) Provider ------------------------------------------------------------
-  $wpdb->insert($wpdb->prefix . 'ro_providers', [
+  $wpdb->insert($wpdb->prefix . 'simplerewardoffer_providers', [
     'unique_provider_hash' => bin2hex(random_bytes(16)),
     'name'         => RO_TEST_PROVIDER,
     'type'         => 'static_api',
@@ -110,7 +110,7 @@ try {
   ];
   foreach ($rawOffers as $raw) {
     $n = $schema->mapOffer($raw);
-    $wpdb->insert($wpdb->prefix . 'ro_offers', [
+    $wpdb->insert($wpdb->prefix . 'simplerewardoffer_offers', [
       'provider_id'       => $providerId,
       'provider_offer_id' => $n['providerOfferId'],
       'name'              => $n['name'],
@@ -128,14 +128,14 @@ try {
     ]);
   }
   $offerCount = (int) $wpdb->get_var($wpdb->prepare(
-    "SELECT COUNT(*) FROM {$wpdb->prefix}ro_offers WHERE provider_id = %d",
+    "SELECT COUNT(*) FROM {$wpdb->prefix}simplerewardoffer_offers WHERE provider_id = %d",
     $providerId
   ));
   $check('offers created and connected to provider', $offerCount === count($rawOffers), "expected " . count($rawOffers) . ", got {$offerCount}");
 
   // 3) User (resolved via external_identifier) -----------------------------
   $userHash = bin2hex(random_bytes(16));
-  $wpdb->insert($wpdb->prefix . 'ro_users', [
+  $wpdb->insert($wpdb->prefix . 'simplerewardoffer_users', [
     'email'            => RO_TEST_EMAIL,
     'password_hash'    => 'x',
     'display_name'     => 'Callback Flow Test',
@@ -151,7 +151,7 @@ try {
 
   // 4) Callback carrying every macro (param_map = the full schema map) ------
   $cbHash = bin2hex(random_bytes(16));
-  $wpdb->insert($wpdb->prefix . 'ro_provider_callbacks', [
+  $wpdb->insert($wpdb->prefix . 'simplerewardoffer_provider_callbacks', [
     'provider_id'      => $providerId,
     'name'             => 'All macros',
     'unique_hash'      => $cbHash,
@@ -186,11 +186,11 @@ try {
   $lookup = function (string $txn, string $type) use ($wpdb, $userId) {
     $p = $wpdb->prefix;
     $cb = $wpdb->get_row($wpdb->prepare(
-      "SELECT * FROM {$p}ro_callbacks WHERE transaction_id = %s AND callback_type = %s",
+      "SELECT * FROM {$p}simplerewardoffer_callbacks WHERE transaction_id = %s AND callback_type = %s",
       $txn, $type
     ));
     $reward = $cb ? $wpdb->get_row($wpdb->prepare(
-      "SELECT * FROM {$p}ro_rewards WHERE callback_id = %d",
+      "SELECT * FROM {$p}simplerewardoffer_rewards WHERE callback_id = %d",
       (int) $cb->id
     )) : null;
     return [$cb, $reward];
@@ -232,7 +232,7 @@ try {
 
   // Total rewards for this user must be exactly one (only the paid conversion).
   $rewardTotal = (int) $wpdb->get_var($wpdb->prepare(
-    "SELECT COUNT(*) FROM {$wpdb->prefix}ro_rewards WHERE user_id = %d",
+    "SELECT COUNT(*) FROM {$wpdb->prefix}simplerewardoffer_rewards WHERE user_id = %d",
     $userId
   ));
   $check('exactly one reward across all three events', $rewardTotal === 1, "reward rows = {$rewardTotal}");

@@ -1,15 +1,15 @@
 <?php
 
-namespace SimpleRO\Models;
+namespace SimpleRewardOffer\Models;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Model;
+use SimpleRewardOffer\WPBones\Database\Model;
 
 /**
- * RoUser — maps to wp_ro_users.
+ * RoUser — maps to wp_simplerewardoffer_users.
  *
  * NOTE: the WPBones query builder does NOT escape values in where()/update()
  * (only insert() escapes). Use $wpdb->prepare() for any lookup built from
@@ -18,5 +18,5 @@ use SimpleRO\WPBones\Database\Model;
  */
 class RoUser extends Model
 {
-  protected $table = 'ro_users';
+  protected $table = 'simplerewardoffer_users';
 }

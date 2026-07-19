@@ -1,6 +1,6 @@
 <?php
 
-namespace SimpleRO\Services;
+namespace SimpleRewardOffer\Services;
 
 if (!defined('ABSPATH')) {
   exit();

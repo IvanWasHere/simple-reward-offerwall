@@ -1,13 +1,13 @@
 <?php
 
-namespace SimpleRO\Services;
+namespace SimpleRewardOffer\Services;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
 /**
- * SpaBoot — the `window.SimpleRO` boot payload shared by every front-end SPA
+ * SpaBoot — the `window.SimpleRewardOffer` boot payload shared by every front-end SPA
  * entry point (the /reward template takeover and the admin/support shortcodes).
  *
  * Carries no secrets: REST base + cookie/CSRF names + a couple of URLs. All
@@ -17,14 +17,14 @@ class SpaBoot
 {
   public static function data(string $role): array
   {
-    $plugin = SimpleRO();
+    $plugin = SimpleRewardOffer();
 
     return [
-      'restBase'   => esc_url_raw(rtrim(rest_url('simple-ro/v1'), '/')),
+      'restBase'   => esc_url_raw(rtrim(rest_url('simplerewardoffer/v1'), '/')),
       'app'        => $role,
       'appName'    => Settings::appName(),
       'appIconUrl' => Settings::appIconUrl(),
-      'cookieCsrf' => $plugin->config('custom.auth.cookie_csrf', 'ro_csrf'),
+      'cookieCsrf' => $plugin->config('custom.auth.cookie_csrf', 'simplerewardoffer_csrf'),
       'csrfHeader' => $plugin->config('custom.auth.csrf_header', 'X-RO-CSRF'),
       'pages'      => $plugin->config('custom.pages', []),
       'homeUrl'    => esc_url_raw(home_url('/')),

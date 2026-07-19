@@ -4,10 +4,10 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_provider_callbacks — S2S postback configs (a provider can have many).
+ * simplerewardoffer_provider_callbacks — S2S postback configs (a provider can have many).
  *
  * The provider is given .../callback/{unique_hash}. `param_map` maps incoming
  * request keys to our canonical fields (transaction_id, user_id, amount,
@@ -20,7 +20,7 @@ return new class extends Migration {
   public function up()
   {
     $this->create(
-      'ro_provider_callbacks',
+      'simplerewardoffer_provider_callbacks',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         provider_id bigint(20) unsigned NOT NULL default 0,

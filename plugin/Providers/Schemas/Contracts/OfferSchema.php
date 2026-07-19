@@ -1,6 +1,6 @@
 <?php
 
-namespace SimpleRO\Providers\Schemas\Contracts;
+namespace SimpleRewardOffer\Providers\Schemas\Contracts;
 
 if (!defined('ABSPATH')) {
   exit();
@@ -9,10 +9,10 @@ if (!defined('ABSPATH')) {
 /**
  * OfferSchema — a named, provider-specific mapping strategy.
  *
- * A provider row references a schema by key (ro_providers.offer_schema). The
+ * A provider row references a schema by key (simplerewardoffer_providers.offer_schema). The
  * schema encapsulates everything provider-specific about a network:
  *  - how its offers-API response is fetched (HTTP method) and where the offers
- *    array lives (offers_path), and how one raw offer maps to our ro_offers shape;
+ *    array lives (offers_path), and how one raw offer maps to our simplerewardoffer_offers shape;
  *  - the set of postback macros it can send + a ready-to-paste postback URL
  *    template + the default incoming→canonical param map for its callbacks;
  *  - which callback events create a reward vs. are audit-only (rewardRule).
@@ -36,7 +36,7 @@ interface OfferSchema
    * The JSON body to POST for the offers request (empty = none / GET feed). Lets
    * a schema send credentials in the body instead of the URL.
    *
-   * @param object $provider ro_providers row
+   * @param object $provider simplerewardoffer_providers row
    * @return array<string,mixed>
    */
   public function requestBody(object $provider): array;

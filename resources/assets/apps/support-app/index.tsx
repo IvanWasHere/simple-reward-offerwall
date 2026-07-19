@@ -2,7 +2,7 @@
  * Simple Reward Offerwall — support SPA (Phase 6).
  *
  * The support agent queue: browse tickets, assign, reply, change status, and view
- * a read-only snapshot of the user. Mounted via [simple_ro_support_app].
+ * a read-only snapshot of the user. Mounted via [simplerewardoffer_support_app].
  * Authorization is enforced server-side (role: support; admin is a superset).
  */
 import {
@@ -58,7 +58,7 @@ const App = () => {
   const [ me, setMe ] = useState< Me | null >( null );
 
   const load = () =>
-    api< { user: Me } >( '/auth/me' )
+    api< { user: Me | null } >( '/auth/me' )
       .then( ( r ) => setMe( r.user ) )
       .catch( () => setMe( null ) )
       .finally( () => setLoading( false ) );
@@ -371,7 +371,7 @@ const TicketView = ( {
 
 /* ------------------------------------------------------------------ */
 
-const container = document.getElementById( 'simple-ro-support-root' );
+const container = document.getElementById( 'simplerewardoffer-support-root' );
 if ( container ) {
   createRoot( container ).render( <App /> );
 }

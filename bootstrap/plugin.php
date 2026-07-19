@@ -1,6 +1,6 @@
 <?php
 
-use SimpleRO\WPBones\Foundation\Plugin;
+use SimpleRewardOffer\WPBones\Foundation\Plugin;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
 | which serves as the "glue" for all the components.
 |
 */
-if (class_exists('\SimpleRO\WPBones\Foundation\Plugin')) {
+if (class_exists('\SimpleRewardOffer\WPBones\Foundation\Plugin')) {
     $plugin = new Plugin(
         realpath(__DIR__ . '/../')
     );

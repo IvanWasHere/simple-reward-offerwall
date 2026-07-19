@@ -1,17 +1,17 @@
 <?php
 
-namespace SimpleRO\Models;
+namespace SimpleRewardOffer\Models;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Model;
+use SimpleRewardOffer\WPBones\Database\Model;
 
 /**
- * RoSupportMessage — maps to wp_ro_support_messages.
+ * RoSupportMessage — maps to wp_simplerewardoffer_support_messages.
  */
 class RoSupportMessage extends Model
 {
-  protected $table = 'ro_support_messages';
+  protected $table = 'simplerewardoffer_support_messages';
 }

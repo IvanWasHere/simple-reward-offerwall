@@ -1,5 +1,5 @@
 /**
- * SimpleRO ReactJS Boilerplate — demo admin app built with ONLY WordPress libraries.
+ * SimpleRewardOffer ReactJS Boilerplate — demo admin app built with ONLY WordPress libraries.
  *
  * No Mantine, no third-party React UI kit. Everything here comes from the core
  * WordPress packages that ship with WordPress: the `element` package for React

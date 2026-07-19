@@ -1,6 +1,6 @@
 <?php
 
-namespace SimpleRO\Providers\Contracts;
+namespace SimpleRewardOffer\Providers\Contracts;
 
 if (!defined('ABSPATH')) {
   exit();
@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
 /**
  * ProviderAdapter — the strategy each provider type implements.
  *
- * Adding a new network is usually a new ro_providers row reusing an existing
+ * Adding a new network is usually a new simplerewardoffer_providers row reusing an existing
  * adapter; a genuinely new integration shape is a new adapter class registered in
  * ProviderAdapterFactory.
  *
@@ -26,8 +26,8 @@ interface ProviderAdapter
    * Build the outbound URL for a user (iframe src or an offer click target),
    * substituting macros. Returns '' if the adapter does not build URLs.
    *
-   * @param object $provider ro_providers row
-   * @param object $user     ro_users row (id, unique_user_hash, ...)
+   * @param object $provider simplerewardoffer_providers row
+   * @param object $user     simplerewardoffer_users row (id, unique_user_hash, ...)
    * @param array  $context  extra macro sources (e.g. session_id, provider_offer_id)
    */
   public function buildUserUrl(object $provider, object $user, array $context = []): string;
@@ -40,7 +40,7 @@ interface ProviderAdapter
   public function fetchOffers(object $provider, object $user): array;
 
   /**
-   * Pull offers and upsert them into ro_offers (static_api). Returns the count
+   * Pull offers and upsert them into simplerewardoffer_offers (static_api). Returns the count
    * of offers seen this run.
    */
   public function ingest(object $provider): int;

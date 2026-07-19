@@ -4,18 +4,18 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_rewards — a coin reward derived from a callback, pending admin approval.
+ * simplerewardoffer_rewards — a coin reward derived from a callback, pending admin approval.
  * coins_value is signed (negative for chargebacks/reversals). On approval a
- * matching ro_coin_ledger entry is written.
+ * matching simplerewardoffer_coin_ledger entry is written.
  */
 return new class extends Migration {
   public function up()
   {
     $this->create(
-      'ro_rewards',
+      'simplerewardoffer_rewards',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         user_id bigint(20) unsigned NOT NULL default 0,

@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\API;
+namespace SimpleRewardOffer\API;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Services\ReferralService;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Services\ReferralService;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * AuthController — custom registration / login / password-reset for offerwall accounts.
@@ -49,7 +49,7 @@ class AuthController extends RestController
       );
     }
 
-    $users = $wpdb->prefix . 'ro_users';
+    $users = $wpdb->prefix . 'simplerewardoffer_users';
     $exists = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$users} WHERE email = %s LIMIT 1", $email));
     if ($exists) {
       return $this->responseError('ro_email_taken', __('An account with that email already exists.', 'simple-reward-offerwall'), 409);
@@ -104,7 +104,7 @@ class AuthController extends RestController
       return $this->responseError('ro_rate_limited', __('Too many attempts. Please try again later.', 'simple-reward-offerwall'), 429);
     }
 
-    $users = $wpdb->prefix . 'ro_users';
+    $users = $wpdb->prefix . 'simplerewardoffer_users';
     $user = $wpdb->get_row($wpdb->prepare(
       "SELECT id, password_hash, type, status FROM {$users} WHERE email = %s LIMIT 1",
       $email
@@ -164,16 +164,16 @@ class AuthController extends RestController
       return $generic;
     }
 
-    $users = $wpdb->prefix . 'ro_users';
+    $users = $wpdb->prefix . 'simplerewardoffer_users';
     $user = $wpdb->get_row($wpdb->prepare("SELECT id, status FROM {$users} WHERE email = %s LIMIT 1", $email));
     if (!$user || $user->status === 'blocked') {
       return $generic;
     }
 
     $token = bin2hex(random_bytes(32));
-    $ttl = (int) SimpleRO()->config('custom.auth.reset_ttl_minutes', 30);
+    $ttl = (int) SimpleRewardOffer()->config('custom.auth.reset_ttl_minutes', 30);
     $wpdb->insert(
-      $wpdb->prefix . 'ro_password_resets',
+      $wpdb->prefix . 'simplerewardoffer_password_resets',
       [
         'user_id'    => (int) $user->id,
         'token_hash' => hash('sha256', $token),
@@ -209,7 +209,7 @@ class AuthController extends RestController
       );
     }
 
-    $resets = $wpdb->prefix . 'ro_password_resets';
+    $resets = $wpdb->prefix . 'simplerewardoffer_password_resets';
     $row = $wpdb->get_row($wpdb->prepare(
       "SELECT id, user_id, expires_at, used_at FROM {$resets} WHERE token_hash = %s LIMIT 1",
       hash('sha256', $token)
@@ -221,7 +221,7 @@ class AuthController extends RestController
 
     $now = gmdate('Y-m-d H:i:s');
     $wpdb->update(
-      $wpdb->prefix . 'ro_users',
+      $wpdb->prefix . 'simplerewardoffer_users',
       ['password_hash' => password_hash($password, PASSWORD_DEFAULT), 'updated_at' => $now],
       ['id' => (int) $row->user_id],
       ['%s', '%s'],
@@ -242,7 +242,11 @@ class AuthController extends RestController
   {
     $user = Guard::user($this->request);
     if (!$user) {
-      return $this->responseError('ro_unauthenticated', __('Not signed in.', 'simple-reward-offerwall'), 401);
+      // Anonymous visitor: report logged-out state as 200 with a null user rather
+      // than a 401. This is the SPA's "am I signed in?" probe on every page load;
+      // a 4xx would surface a red error in the browser console on the login screen
+      // even though it's the expected path. The client reads `user === null`.
+      return $this->response(['user' => null]);
     }
     return $this->response(['user' => $this->publicUser($user)]);
   }
@@ -277,10 +281,10 @@ class AuthController extends RestController
   {
     global $wpdb;
 
-    $max = (int) SimpleRO()->config('custom.auth.login_max_attempts', 5);
-    $window = (int) SimpleRO()->config('custom.auth.login_window_minutes', 15);
+    $max = (int) SimpleRewardOffer()->config('custom.auth.login_max_attempts', 5);
+    $window = (int) SimpleRewardOffer()->config('custom.auth.login_window_minutes', 15);
     $since = gmdate('Y-m-d H:i:s', time() - $window * MINUTE_IN_SECONDS);
-    $attempts = $wpdb->prefix . 'ro_login_attempts';
+    $attempts = $wpdb->prefix . 'simplerewardoffer_login_attempts';
 
     $count = (int) $wpdb->get_var($wpdb->prepare(
       "SELECT COUNT(*) FROM {$attempts} WHERE success = 0 AND created_at > %s AND (email = %s OR ip = %s)",
@@ -295,12 +299,12 @@ class AuthController extends RestController
   /** Allow a bounded number of forgot-password requests per IP per window. */
   private function forgotThrottled(string $ip): bool
   {
-    $key = 'sro_forgot_' . md5($ip);
+    $key = 'simplerewardoffer_forgot_' . md5($ip);
     $count = (int) get_transient($key);
     if ($count >= 5) {
       return true;
     }
-    set_transient($key, $count + 1, (int) SimpleRO()->config('custom.auth.login_window_minutes', 15) * MINUTE_IN_SECONDS);
+    set_transient($key, $count + 1, (int) SimpleRewardOffer()->config('custom.auth.login_window_minutes', 15) * MINUTE_IN_SECONDS);
     return false;
   }
 
@@ -308,7 +312,7 @@ class AuthController extends RestController
   {
     global $wpdb;
     $wpdb->insert(
-      $wpdb->prefix . 'ro_login_attempts',
+      $wpdb->prefix . 'simplerewardoffer_login_attempts',
       ['email' => $email, 'ip' => $ip, 'success' => $success ? 1 : 0, 'created_at' => gmdate('Y-m-d H:i:s')],
       ['%s', '%s', '%d', '%s']
     );
@@ -317,7 +321,7 @@ class AuthController extends RestController
   private function sendResetEmail(string $email, string $token): void
   {
     // The user app lives at the /reward takeover; AuthScreens reads ?token=.
-    $slug = trim((string) SimpleRO()->config('custom.reward_slug', 'reward'), '/');
+    $slug = trim((string) SimpleRewardOffer()->config('custom.reward_slug', 'reward'), '/');
     $url = home_url('/' . $slug . '/') . '?token=' . rawurlencode($token);
 
     $subject = __('Reset your password', 'simple-reward-offerwall');
@@ -334,7 +338,7 @@ class AuthController extends RestController
   private function userPayload(int $userId): array
   {
     global $wpdb;
-    $users = $wpdb->prefix . 'ro_users';
+    $users = $wpdb->prefix . 'simplerewardoffer_users';
     $u = $wpdb->get_row($wpdb->prepare(
       "SELECT id, email, type, status, display_name, unique_user_hash FROM {$users} WHERE id = %d LIMIT 1",
       $userId

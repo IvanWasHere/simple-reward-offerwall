@@ -151,10 +151,10 @@ return [
   */
 
   'providers' => [
-    \SimpleRO\Providers\SpaRouteServiceProvider::class,
-    \SimpleRO\Providers\AppShortcodesServiceProvider::class,
-    \SimpleRO\Providers\CliServiceProvider::class,
-    \SimpleRO\Providers\IngestOffersSchedule::class,
+    \SimpleRewardOffer\Providers\SpaRouteServiceProvider::class,
+    \SimpleRewardOffer\Providers\AppShortcodesServiceProvider::class,
+    \SimpleRewardOffer\Providers\CliServiceProvider::class,
+    \SimpleRewardOffer\Providers\IngestOffersSchedule::class,
   ]
 
 ];

@@ -1,13 +1,13 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Services\Settings;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\Services\Settings;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * SettingsController (admin) — site-level settings. Guarded by Guard::role('admin').

@@ -15,8 +15,8 @@
     }
   ],
   "support": {
-    "issues": "https://github.com/wpbones/SimpleRO/issues",
-    "source": "https://github.com/wpbones/SimpleRO/"
+    "issues": "https://github.com/wpbones/SimpleRewardOffer/issues",
+    "source": "https://github.com/wpbones/SimpleRewardOffer/"
   },
   "require": {
     "php": ">=7.4",
@@ -25,7 +25,7 @@
   },
   "autoload": {
     "psr-4": {
-      "SimpleRO\\": "plugin/"
+      "SimpleRewardOffer\\": "plugin/"
     },
     "files": [
       "functions.php"

@@ -6,16 +6,16 @@ callbacks we capture as **coin rewards**; users redeem coins for **payouts** (gi
 Three account types — **user / admin / support** — each with its own **React SPA on the
 public front-end** (WordPress is only the host; wp-admin is not used for the app UI).
 
-Namespace `SimpleRO` (PSR-4 → `plugin/`). REST API at `/wp-json/simple-ro/v1`.
+Namespace `SimpleRO` (PSR-4 → `plugin/`). REST API at `/wp-json/simplerewardoffer/v1`.
 
 ## Architecture
 
-- **Custom auth, not `wp_users`.** Accounts live in `wp_ro_users`. Sessions are opaque
+- **Custom auth, not `wp_users`.** Accounts live in `wp_simplerewardoffer_users`. Sessions are opaque
   tokens (32 random bytes hex) in an httpOnly+Secure+SameSite=Strict `ro_session` cookie;
   only `sha256(token)` is stored. A non-httpOnly `ro_csrf` cookie is echoed in the
   `X-RO-CSRF` header (double-submit CSRF, checked on mutations). See
   `plugin/API/Auth/Guard.php` + `plugin/API/AuthController.php`.
-- **REST is the backbone.** Routes in `api/simple-ro/v1/routes.php` map to controllers in
+- **REST is the backbone.** Routes in `api/simplerewardoffer/v1/routes.php` map to controllers in
   `plugin/API/**` (`SimpleRO\API\...`). Every non-public route sets an explicit
   `permission_callback` = `Guard::role('user'|'admin'|'support')` / `Guard::authenticated()`
   (`admin` is a superset of `support`). Public: `health`, `auth/*`, `callback/{hash}`.
@@ -33,7 +33,7 @@ Namespace `SimpleRO` (PSR-4 → `plugin/`). REST API at `/wp-json/simple-ro/v1`.
     `custom.reward_slug` / `custom.admin_slug`.
   - **Support app** remains a `@wordpress/scripts` bundle in
     `resources/assets/apps/support-app/index.tsx`, built to `public/apps/support-app.js`,
-    mounted via the `[simple_ro_support_app]` shortcode on the auto-created
+    mounted via the `[simplerewardoffer_support_app]` shortcode on the auto-created
     `/offerwall-support` page.
   - The `window.SimpleRO` boot object (REST base, cookie/CSRF names, URLs, plus the global
     `appName` / `appIconUrl` branding) is shared by all via `plugin/Services/SpaBoot.php`.
@@ -49,15 +49,15 @@ Namespace `SimpleRO` (PSR-4 → `plugin/`). REST API at `/wp-json/simple-ro/v1`.
   `{external_id}` that `IframeAdapter`+`Services/MacroBuilder::substitute` replace
   URL-encoded per user — e.g. `…&sid={user_id}` → `…&sid=123`. `{external_id}` =
   `<prefix>-<user_id>-<user_hash>`, where the site-level prefix is set by admins via
-  `GET|PUT /admin/settings` — `Services/Settings.php`, stored in the `simple_ro_settings`
+  `GET|PUT /admin/settings` — `Services/Settings.php`, stored in the `simplerewardoffer_settings`
   option), `offerwall_api` (live JSON proxy, 60s transient cache),
-  `static_api` (pulled hourly into `ro_offers` — `Services/OfferIngestionService.php` +
-  `Providers/IngestOffersSchedule.php`, cron hook `simple_ro_ingest_offers`).
+  `static_api` (pulled hourly into `simplerewardoffer_offers` — `Services/OfferIngestionService.php` +
+  `Providers/IngestOffersSchedule.php`, cron hook `simplerewardoffer_ingest_offers`).
 - **Callbacks** (`plugin/API/CallbackController.php`): `GET|POST /callback/{hash}` selects a
-  `ro_provider_callbacks` config, verifies the signature
+  `simplerewardoffer_provider_callbacks` config, verifies the signature
   (`Services/SignatureVerifier.php`, HMAC-SHA256 / md5 / none), maps params, and creates a
   **pending** reward. Idempotent via `UNIQUE(provider_id, transaction_id)`.
-- **Coins = an append-only ledger.** `ro_coin_ledger` is the source of truth; balance =
+- **Coins = an append-only ledger.** `simplerewardoffer_coin_ledger` is the source of truth; balance =
   `SUM(delta)` (`Services/LedgerService.php`). Idempotent via
   `UNIQUE(ref_type, ref_id, reason)`. Rewards and redemptions are **admin-approved**.
   Redemption `store()` reserves/debits coins inside one InnoDB transaction with a
@@ -86,7 +86,7 @@ Beyond offers/clicks/balance/payouts, the user API also serves the RewardVault
   Client never asserts the prize.
 - `GET /leaderboard?period=today|week|month` — **top 25** for the period
   (`LeaderboardController`). Reads denormalised `earned_today/earned_week/earned_month` counters
-  on `ro_users` (maintained by `LedgerService::addEarning` on every positive credit, reset when
+  on `simplerewardoffer_users` (maintained by `LedgerService::addEarning` on every positive credit, reset when
   the period marker `earn_day`/`earn_week`(last Sunday)/`earn_month` rolls over) — **no
   ledger SUM/GROUP BY**. Exposes name + amount only.
 - `GET /bonuses` + `POST /bonuses/{key}/claim` — daily/one_time/milestone bonuses
@@ -103,7 +103,7 @@ Beyond offers/clicks/balance/payouts, the user API also serves the RewardVault
   custom.referral.bonus_coins` on the referred user's first approved reward (credited from
   `Admin\RewardsController::approve` → `ReferralService::creditReferrer`, idempotent).
 
-## Data model (`wp_ro_*`)
+## Data model (`wp_simplerewardoffer_*`)
 
 `users` (incl. `referral_code`, `referred_by`), `sessions`, `password_resets`,
 `login_attempts`, `providers`, `provider_callbacks`, `offers`, `clicked`, `callbacks`,
@@ -112,7 +112,7 @@ Beyond offers/clicks/balance/payouts, the user API also serves the RewardVault
 
 **Device fingerprinting**: the user SPA runs **ThumbmarkJS** (bundled into the Vite user
 app — no external API) on each login and POSTs the result to `POST /me/fingerprint`
-(`AccountController::storeFingerprint`), stored in `ro_fingerprints` (server adds IP +
+(`AccountController::storeFingerprint`), stored in `simplerewardoffer_fingerprints` (server adds IP +
 request UA; `visitor_id` = the ThumbmarkJS hash). Admins view a user's fingerprints on the
 **user detail page** (`/offerwall-admin/users/:id` — a real route, not a modal) alongside
 their clicks, and can delete individual fingerprints
@@ -138,11 +138,11 @@ their clicks, and can delete individual fingerprints
   flushes the `/reward` rewrite). In dev, re-run migrations with a
   `wp plugin deactivate && wp plugin activate` cycle; `wp rewrite flush` alone re-registers
   the rewrite.
-- **Staff accounts**: `wp simple-ro make-admin --email= --password= [--type=admin|support]`
+- **Staff accounts**: `wp simplerewardoffer make-admin --email= --password= [--type=admin|support]`
   (`plugin/Providers/CliServiceProvider.php`).
 - **Verify** REST over HTTP with curl; on a local Herd/Valet site the cert is self-signed so
   use `curl -k`, and query the DB via `wp eval` (the `mysql` CLI may not be on PATH). Trigger
-  the ingest cron with `wp eval "do_action('simple_ro_ingest_offers')"`.
+  the ingest cron with `wp eval "do_action('simplerewardoffer_ingest_offers')"`.
 - After adding PHP classes, run `composer dump-autoload -o`.
 
 ## Vestigial boilerplate

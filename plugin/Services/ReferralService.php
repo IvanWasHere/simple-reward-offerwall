@@ -1,6 +1,6 @@
 <?php
 
-namespace SimpleRO\Services;
+namespace SimpleRewardOffer\Services;
 
 if (!defined('ABSPATH')) {
   exit();
@@ -20,7 +20,7 @@ class ReferralService
   public static function generateCode(): string
   {
     global $wpdb;
-    $t = $wpdb->prefix . 'ro_users';
+    $t = $wpdb->prefix . 'simplerewardoffer_users';
 
     do {
       $code = strtoupper(bin2hex(random_bytes(4))); // 8 hex chars
@@ -38,7 +38,7 @@ class ReferralService
     if ($code === '') {
       return 0;
     }
-    $t = $wpdb->prefix . 'ro_users';
+    $t = $wpdb->prefix . 'simplerewardoffer_users';
     return (int) $wpdb->get_var($wpdb->prepare("SELECT id FROM {$t} WHERE referral_code = %s LIMIT 1", $code));
   }
 
@@ -49,14 +49,14 @@ class ReferralService
   public static function creditReferrer(int $userId): void
   {
     global $wpdb;
-    $t = $wpdb->prefix . 'ro_users';
+    $t = $wpdb->prefix . 'simplerewardoffer_users';
 
     $referrerId = (int) $wpdb->get_var($wpdb->prepare("SELECT referred_by FROM {$t} WHERE id = %d LIMIT 1", $userId));
     if ($referrerId <= 0) {
       return;
     }
 
-    $bonus = (int) SimpleRO()->config('custom.referral.bonus_coins', 200);
+    $bonus = (int) SimpleRewardOffer()->config('custom.referral.bonus_coins', 200);
     if ($bonus <= 0) {
       return;
     }
@@ -73,8 +73,8 @@ class ReferralService
   public static function summary(int $userId): array
   {
     global $wpdb;
-    $u = $wpdb->prefix . 'ro_users';
-    $l = $wpdb->prefix . 'ro_coin_ledger';
+    $u = $wpdb->prefix . 'simplerewardoffer_users';
+    $l = $wpdb->prefix . 'simplerewardoffer_coin_ledger';
 
     $code = (string) $wpdb->get_var($wpdb->prepare("SELECT referral_code FROM {$u} WHERE id = %d LIMIT 1", $userId));
     $count = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$u} WHERE referred_by = %d", $userId));

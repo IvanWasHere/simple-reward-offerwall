@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\Providers;
+namespace SimpleRewardOffer\Providers;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Services\Settings;
-use SimpleRO\Services\SpaBoot;
-use SimpleRO\WPBones\Support\ServiceProvider;
+use SimpleRewardOffer\Services\Settings;
+use SimpleRewardOffer\Services\SpaBoot;
+use SimpleRewardOffer\WPBones\Support\ServiceProvider;
 
 /**
  * SpaRouteServiceProvider — serves the RewardVault Vite SPAs by OVERTAKING the
@@ -28,7 +28,7 @@ use SimpleRO\WPBones\Support\ServiceProvider;
  */
 class SpaRouteServiceProvider extends ServiceProvider
 {
-  private const QUERY_VAR = 'simple_ro_spa';
+  private const QUERY_VAR = 'simplerewardoffer_spa';
 
   public function register()
   {
@@ -121,7 +121,7 @@ class SpaRouteServiceProvider extends ServiceProvider
       . '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">'
       . '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">'
       . $tags
-      . '<script>window.SimpleRO=' . $boot . ';</script>'
+      . '<script>window.SimpleRewardOffer=' . $boot . ';</script>'
       . '</head>'
       . '<body>' . $body . $script . '</body>'
       . '</html>';

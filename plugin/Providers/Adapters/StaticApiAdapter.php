@@ -1,13 +1,13 @@
 <?php
 
-namespace SimpleRO\Providers\Adapters;
+namespace SimpleRewardOffer\Providers\Adapters;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
 /**
- * StaticApiAdapter — offers pulled server-side and stored in ro_offers, deduped by
+ * StaticApiAdapter — offers pulled server-side and stored in simplerewardoffer_offers, deduped by
  * (provider_id, provider_offer_id). Offers not seen in a run are soft-inactivated.
  * The scheduled runner and admin manual trigger call ingest() (Phase 5).
  */
@@ -28,7 +28,7 @@ class StaticApiAdapter extends AbstractAdapter
       return 0;
     }
 
-    $table = $wpdb->prefix . 'ro_offers';
+    $table = $wpdb->prefix . 'simplerewardoffer_offers';
     $now = gmdate('Y-m-d H:i:s');
     $seen = [];
 

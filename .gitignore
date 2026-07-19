@@ -1,6 +1,7 @@
 node_modules/
 resources/assets/vendor/
 vendor/
+storage/logs
 .cache/
 .php-cs-fixer.cache
 release.sh

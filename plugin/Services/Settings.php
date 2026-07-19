@@ -1,6 +1,6 @@
 <?php
 
-namespace SimpleRO\Services;
+namespace SimpleRewardOffer\Services;
 
 if (!defined('ABSPATH')) {
   exit();
@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 
 /**
  * Settings — site-level, admin-editable configuration stored as a single WP
- * option (`simple_ro_settings`). Falls back to config/custom.php defaults.
+ * option (`simplerewardoffer_settings`). Falls back to config/custom.php defaults.
  *
  * Currently holds `external_id_prefix`: the leading label an admin sets once for
  * the whole site, used to build the external identifier sent to offerwall
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
  */
 class Settings
 {
-  private const OPTION = 'simple_ro_settings';
+  private const OPTION = 'simplerewardoffer_settings';
 
   public static function all(): array
   {
@@ -43,7 +43,7 @@ class Settings
   {
     $val = self::get('external_id_prefix', null);
     if ($val === null) {
-      $val = SimpleRO()->config('custom.external_id.prefix', '');
+      $val = SimpleRewardOffer()->config('custom.external_id.prefix', '');
     }
     return (string) $val;
   }
@@ -52,7 +52,7 @@ class Settings
   public static function appName(): string
   {
     $val = self::get('app_name', null);
-    $val = ($val === null || $val === '') ? SimpleRO()->config('custom.app_name', 'RewardVault') : $val;
+    $val = ($val === null || $val === '') ? SimpleRewardOffer()->config('custom.app_name', 'RewardVault') : $val;
     return (string) $val;
   }
 

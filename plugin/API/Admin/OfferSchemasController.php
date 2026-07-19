@@ -1,13 +1,13 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Providers\Schemas\OfferSchemaRegistry;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\Providers\Schemas\OfferSchemaRegistry;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * OfferSchemasController (admin) — read-only list of the built-in offer schemas,

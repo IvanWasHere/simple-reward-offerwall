@@ -21,7 +21,7 @@ msgstr ""
 
 #. Plugin URI of the plugin
 #: simple-reward-offerwall.php
-msgid "https://github.com/wpbones/SimpleRO-ReactJS-Boilerplate"
+msgid "https://github.com/wpbones/SimpleRewardOffer-ReactJS-Boilerplate"
 msgstr ""
 
 #. Description of the plugin

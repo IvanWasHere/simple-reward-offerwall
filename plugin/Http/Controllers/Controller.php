@@ -1,8 +1,8 @@
 <?php
 
-namespace SimpleRO\Http\Controllers;
+namespace SimpleRewardOffer\Http\Controllers;
 
-use SimpleRO\WPBones\Routing\Controller as BaseController;
+use SimpleRewardOffer\WPBones\Routing\Controller as BaseController;
 
 if (!defined('ABSPATH')) {
     exit();

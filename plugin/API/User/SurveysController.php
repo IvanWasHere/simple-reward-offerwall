@@ -1,12 +1,12 @@
 <?php
 
-namespace SimpleRO\API\User;
+namespace SimpleRewardOffer\API\User;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * SurveysController — offers from providers flagged as survey walls
@@ -20,8 +20,8 @@ class SurveysController extends RestController
   {
     global $wpdb;
 
-    $o = $wpdb->prefix . 'ro_offers';
-    $p = $wpdb->prefix . 'ro_providers';
+    $o = $wpdb->prefix . 'simplerewardoffer_offers';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
 
     $providers = $wpdb->get_results("SELECT id, name, coin_rate, config FROM {$p} WHERE status = 'active'");
 

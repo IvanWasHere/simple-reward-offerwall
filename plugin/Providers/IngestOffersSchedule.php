@@ -1,13 +1,13 @@
 <?php
 
-namespace SimpleRO\Providers;
+namespace SimpleRewardOffer\Providers;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Services\OfferIngestionService;
-use SimpleRO\WPBones\Foundation\WordPressScheduleServiceProvider as ServiceProvider;
+use SimpleRewardOffer\Services\OfferIngestionService;
+use SimpleRewardOffer\WPBones\Foundation\WordPressScheduleServiceProvider as ServiceProvider;
 
 /**
  * IngestOffersSchedule — hourly WP-Cron job that refreshes static_api offers.
@@ -15,7 +15,7 @@ use SimpleRO\WPBones\Foundation\WordPressScheduleServiceProvider as ServiceProvi
  */
 class IngestOffersSchedule extends ServiceProvider
 {
-  protected $hook = 'simple_ro_ingest_offers';
+  protected $hook = 'simplerewardoffer_ingest_offers';
 
   protected $recurrence = 'hourly';
 
@@ -24,7 +24,7 @@ class IngestOffersSchedule extends ServiceProvider
     $results = OfferIngestionService::ingestAll();
 
     if (function_exists('logger')) {
-      logger()->info('[simple-ro] scheduled offer ingest', $results);
+      logger()->info('[simplerewardoffer] scheduled offer ingest', $results);
     }
   }
 }

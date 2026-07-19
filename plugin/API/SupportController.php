@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\API;
+namespace SimpleRewardOffer\API;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Services\LedgerService;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Services\LedgerService;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * SupportController — support tickets and threaded messages.
@@ -27,7 +27,7 @@ class SupportController extends RestController
   {
     global $wpdb;
     $user = Guard::user($this->request);
-    $t = $wpdb->prefix . 'ro_support_requests';
+    $t = $wpdb->prefix . 'simplerewardoffer_support_requests';
 
     $rows = $wpdb->get_results($wpdb->prepare(
       "SELECT id, subject, status, assigned_to, last_message_at, created_at
@@ -52,7 +52,7 @@ class SupportController extends RestController
 
     $now = gmdate('Y-m-d H:i:s');
     $wpdb->insert(
-      $wpdb->prefix . 'ro_support_requests',
+      $wpdb->prefix . 'simplerewardoffer_support_requests',
       ['user_id' => (int) $user->id, 'subject' => $subject, 'status' => 'open', 'last_message_at' => $now, 'created_at' => $now, 'updated_at' => $now],
       ['%d', '%s', '%s', '%s', '%s', '%s']
     );
@@ -106,7 +106,7 @@ class SupportController extends RestController
     // (re)opens it. Explicit close is via setStatus.
     $newStatus = $this->isStaff($user) ? 'pending' : 'open';
     $wpdb->update(
-      $wpdb->prefix . 'ro_support_requests',
+      $wpdb->prefix . 'simplerewardoffer_support_requests',
       ['status' => $newStatus, 'last_message_at' => gmdate('Y-m-d H:i:s'), 'updated_at' => gmdate('Y-m-d H:i:s')],
       ['id' => $ticketId],
       ['%s', '%s', '%s'],
@@ -122,8 +122,8 @@ class SupportController extends RestController
   {
     global $wpdb;
     $status = (string) $this->request->get_param('status');
-    $t = $wpdb->prefix . 'ro_support_requests';
-    $u = $wpdb->prefix . 'ro_users';
+    $t = $wpdb->prefix . 'simplerewardoffer_support_requests';
+    $u = $wpdb->prefix . 'simplerewardoffer_users';
 
     $where = '';
     $args = [];
@@ -156,7 +156,7 @@ class SupportController extends RestController
     $assignee = ($target === null || (int) $target === 0) ? (int) $me->id : (int) $target;
 
     // The assignee must be staff.
-    $type = $wpdb->get_var($wpdb->prepare("SELECT type FROM {$wpdb->prefix}ro_users WHERE id = %d", $assignee));
+    $type = $wpdb->get_var($wpdb->prepare("SELECT type FROM {$wpdb->prefix}simplerewardoffer_users WHERE id = %d", $assignee));
     if (!in_array($type, ['support', 'admin'], true)) {
       return $this->responseError('ro_invalid', __('Assignee must be a support or admin user.', 'simple-reward-offerwall'), 422);
     }
@@ -166,7 +166,7 @@ class SupportController extends RestController
     }
 
     $wpdb->update(
-      $wpdb->prefix . 'ro_support_requests',
+      $wpdb->prefix . 'simplerewardoffer_support_requests',
       ['assigned_to' => $assignee, 'updated_at' => gmdate('Y-m-d H:i:s')],
       ['id' => $ticketId],
       ['%d', '%s'],
@@ -190,7 +190,7 @@ class SupportController extends RestController
     }
 
     $wpdb->update(
-      $wpdb->prefix . 'ro_support_requests',
+      $wpdb->prefix . 'simplerewardoffer_support_requests',
       ['status' => $status, 'updated_at' => gmdate('Y-m-d H:i:s')],
       ['id' => $ticketId],
       ['%s', '%s'],
@@ -206,7 +206,7 @@ class SupportController extends RestController
     $userId = (int) $this->request->get_param('id');
 
     $u = $wpdb->get_row($wpdb->prepare(
-      "SELECT id, email, type, status, display_name, created_at FROM {$wpdb->prefix}ro_users WHERE id = %d",
+      "SELECT id, email, type, status, display_name, created_at FROM {$wpdb->prefix}simplerewardoffer_users WHERE id = %d",
       $userId
     ));
     if (!$u) {
@@ -214,7 +214,7 @@ class SupportController extends RestController
     }
 
     $rewards = $wpdb->get_results($wpdb->prepare(
-      "SELECT id, coins_value, status, created_at FROM {$wpdb->prefix}ro_rewards WHERE user_id = %d ORDER BY id DESC LIMIT 10",
+      "SELECT id, coins_value, status, created_at FROM {$wpdb->prefix}simplerewardoffer_rewards WHERE user_id = %d ORDER BY id DESC LIMIT 10",
       $userId
     ));
 
@@ -248,7 +248,7 @@ class SupportController extends RestController
   {
     global $wpdb;
     return $wpdb->get_row($wpdb->prepare(
-      "SELECT * FROM {$wpdb->prefix}ro_support_requests WHERE id = %d LIMIT 1",
+      "SELECT * FROM {$wpdb->prefix}simplerewardoffer_support_requests WHERE id = %d LIMIT 1",
       $id
     ));
   }
@@ -257,7 +257,7 @@ class SupportController extends RestController
   {
     global $wpdb;
     $wpdb->insert(
-      $wpdb->prefix . 'ro_support_messages',
+      $wpdb->prefix . 'simplerewardoffer_support_messages',
       ['ticket_id' => $ticketId, 'author_id' => $authorId, 'author_type' => $authorType, 'body' => $body, 'created_at' => gmdate('Y-m-d H:i:s')],
       ['%d', '%d', '%s', '%s', '%s']
     );
@@ -273,7 +273,7 @@ class SupportController extends RestController
 
     $messages = $wpdb->get_results($wpdb->prepare(
       "SELECT id, author_id, author_type, body, created_at
-         FROM {$wpdb->prefix}ro_support_messages WHERE ticket_id = %d ORDER BY id ASC",
+         FROM {$wpdb->prefix}simplerewardoffer_support_messages WHERE ticket_id = %d ORDER BY id ASC",
       $ticketId
     ));
 

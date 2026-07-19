@@ -1,6 +1,6 @@
 <?php
 
-namespace SimpleRO\Providers\Adapters;
+namespace SimpleRewardOffer\Providers\Adapters;
 
 if (!defined('ABSPATH')) {
   exit();
@@ -22,7 +22,7 @@ class OfferwallApiAdapter extends AbstractAdapter
 
   public function fetchOffers(object $provider, object $user): array
   {
-    $cacheKey = 'sro_offers_' . (int) $provider->id . '_' . (int) $user->id;
+    $cacheKey = 'simplerewardoffer_offers_' . (int) $provider->id . '_' . (int) $user->id;
     $cached = get_transient($cacheKey);
     if (is_array($cached)) {
       return $cached;

@@ -1,6 +1,6 @@
 <?php
 
-namespace SimpleRO\Services;
+namespace SimpleRewardOffer\Services;
 
 if (!defined('ABSPATH')) {
   exit();
@@ -15,7 +15,7 @@ class LedgerService
   public static function balance(int $userId): int
   {
     global $wpdb;
-    $t = $wpdb->prefix . 'ro_coin_ledger';
+    $t = $wpdb->prefix . 'simplerewardoffer_coin_ledger';
     return (int) $wpdb->get_var($wpdb->prepare("SELECT COALESCE(SUM(delta),0) FROM {$t} WHERE user_id = %d", $userId));
   }
 
@@ -29,7 +29,7 @@ class LedgerService
 
     $suppress = $wpdb->suppress_errors(true);
     $ok = $wpdb->insert(
-      $wpdb->prefix . 'ro_coin_ledger',
+      $wpdb->prefix . 'simplerewardoffer_coin_ledger',
       [
         'user_id'    => $userId,
         'delta'      => $delta,
@@ -58,7 +58,7 @@ class LedgerService
   private static function addEarning(int $userId, int $delta): void
   {
     global $wpdb;
-    $t = $wpdb->prefix . 'ro_users';
+    $t = $wpdb->prefix . 'simplerewardoffer_users';
 
     $now = time();
     $today = gmdate('Y-m-d', $now);

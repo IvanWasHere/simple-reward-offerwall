@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\API\User;
+namespace SimpleRewardOffer\API\User;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Services\LedgerService;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Services\LedgerService;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * BonusController — daily / one_time / milestone bonuses defined in
@@ -87,14 +87,14 @@ class BonusController extends RestController
   /** @return array<int,array<string,mixed>> */
   private function bonuses(): array
   {
-    return (array) SimpleRO()->config('custom.bonuses', []);
+    return (array) SimpleRewardOffer()->config('custom.bonuses', []);
   }
 
   private function approvedCount(int $userId): int
   {
     global $wpdb;
     return (int) $wpdb->get_var($wpdb->prepare(
-      "SELECT COUNT(*) FROM {$wpdb->prefix}ro_rewards WHERE user_id = %d AND status = 'approved'",
+      "SELECT COUNT(*) FROM {$wpdb->prefix}simplerewardoffer_rewards WHERE user_id = %d AND status = 'approved'",
       $userId
     ));
   }
@@ -112,7 +112,7 @@ class BonusController extends RestController
     global $wpdb;
     $refId = (($bonus['type'] ?? '') === 'daily') ? (int) gmdate('Ymd') : 0;
     return (bool) $wpdb->get_var($wpdb->prepare(
-      "SELECT id FROM {$wpdb->prefix}ro_coin_ledger
+      "SELECT id FROM {$wpdb->prefix}simplerewardoffer_coin_ledger
         WHERE user_id = %d AND ref_type = 'bonus' AND ref_id = %d AND reason = %s LIMIT 1",
       $userId,
       $refId,

@@ -4,10 +4,10 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_users — offerwall accounts (user / admin / support), fully independent of wp_users.
+ * simplerewardoffer_users — offerwall accounts (user / admin / support), fully independent of wp_users.
  * Passwords are stored as password_hash() output. Timestamps are UTC, written by the app.
  *
  * referral_code: this user's own share code. referred_by: the user id that referred
@@ -22,7 +22,7 @@ return new class extends Migration {
   public function up()
   {
     $this->create(
-      'ro_users',
+      'simplerewardoffer_users',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         unique_user_hash char(32) NOT NULL default '',

@@ -27,24 +27,24 @@ require_once __DIR__ . '/../vendor/autoload.php';
 |
 */
 
-final class SimpleRO
+final class SimpleRewardOffer
 {
     public const TEXTDOMAIN = 'simple-reward-offerwall';
     public static $plugin;
     public static $start;
 }
 
-SimpleRO::$plugin = require_once __DIR__ . '/plugin.php';
-SimpleRO::$start = microtime(true);
+SimpleRewardOffer::$plugin = require_once __DIR__ . '/plugin.php';
+SimpleRewardOffer::$start = microtime(true);
 
 // Commodity function to get the plugin instance
-if (!function_exists('SimpleRO')) {
+if (!function_exists('SimpleRewardOffer')) {
     /**
      * Return the instance of plugin.
      *
      */
-    function SimpleRO()
+    function SimpleRewardOffer()
     {
-        return SimpleRO::$plugin;
+        return SimpleRewardOffer::$plugin;
     }
 }

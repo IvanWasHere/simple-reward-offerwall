@@ -1,17 +1,17 @@
 <?php
 
-namespace SimpleRO\Models;
+namespace SimpleRewardOffer\Models;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Model;
+use SimpleRewardOffer\WPBones\Database\Model;
 
 /**
- * RoCoinLedger — maps to wp_ro_coin_ledger. Append-only; balance = SUM(delta).
+ * RoCoinLedger — maps to wp_simplerewardoffer_coin_ledger. Append-only; balance = SUM(delta).
  */
 class RoCoinLedger extends Model
 {
-  protected $table = 'ro_coin_ledger';
+  protected $table = 'simplerewardoffer_coin_ledger';
 }

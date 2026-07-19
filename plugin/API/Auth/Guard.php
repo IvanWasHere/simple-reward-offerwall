@@ -1,6 +1,6 @@
 <?php
 
-namespace SimpleRO\API\Auth;
+namespace SimpleRewardOffer\API\Auth;
 
 if (!defined('ABSPATH')) {
   exit();
@@ -12,15 +12,15 @@ use WP_REST_Request;
 /**
  * Guard — custom token auth for the REST API.
  *
- * Sessions are opaque tokens: the raw token lives in the httpOnly `ro_session`
- * cookie; only sha256(token) is stored in wp_ro_sessions. A second, non-httpOnly
- * `ro_csrf` cookie backs a double-submit CSRF check on mutating requests.
+ * Sessions are opaque tokens: the raw token lives in the httpOnly `simplerewardoffer_session`
+ * cookie; only sha256(token) is stored in wp_simplerewardoffer_sessions. A second, non-httpOnly
+ * `simplerewardoffer_csrf` cookie backs a double-submit CSRF check on mutating requests.
  *
  * Every lookup that touches request-controlled input uses $wpdb->prepare(),
  * because the WPBones query builder does not escape where() values.
  *
  * Usage in routes:
- *   Route::get('/me/balance', 'SimpleRO\API\...@...', ['permission_callback' => Guard::role('user')]);
+ *   Route::get('/me/balance', 'SimpleRewardOffer\API\...@...', ['permission_callback' => Guard::role('user')]);
  *   Route::post('/admin/...',  ...,                    ['permission_callback' => Guard::role('admin')]);
  *   Route::delete('/auth/session', ...,                ['permission_callback' => Guard::authenticated()]);
  */
@@ -101,14 +101,14 @@ class Guard
   {
     global $wpdb;
 
-    $raw = $_COOKIE[self::cfg('cookie_session', 'ro_session')] ?? '';
+    $raw = $_COOKIE[self::cfg('cookie_session', 'simplerewardoffer_session')] ?? '';
     if (!is_string($raw) || strlen($raw) !== 64 || !ctype_xdigit($raw)) {
       return null;
     }
 
     $tokenHash = hash('sha256', $raw);
-    $sessions  = $wpdb->prefix . 'ro_sessions';
-    $users     = $wpdb->prefix . 'ro_users';
+    $sessions  = $wpdb->prefix . 'simplerewardoffer_sessions';
+    $users     = $wpdb->prefix . 'simplerewardoffer_users';
 
     // phpcs:ignore WordPress.DB.PreparedSQL -- table names are trusted; value is prepared.
     $row = $wpdb->get_row(
@@ -184,7 +184,7 @@ class Guard
     $expiresAt = gmdate('Y-m-d H:i:s', time() + $ttl * DAY_IN_SECONDS);
 
     $wpdb->insert(
-      $wpdb->prefix . 'ro_sessions',
+      $wpdb->prefix . 'simplerewardoffer_sessions',
       [
         'user_id'      => $userId,
         'token_hash'   => hash('sha256', $token),
@@ -200,8 +200,8 @@ class Guard
     );
 
     $maxAge = $ttl * DAY_IN_SECONDS;
-    self::setCookie(self::cfg('cookie_session', 'ro_session'), $token, $maxAge, true);
-    self::setCookie(self::cfg('cookie_csrf', 'ro_csrf'), $csrf, $maxAge, false);
+    self::setCookie(self::cfg('cookie_session', 'simplerewardoffer_session'), $token, $maxAge, true);
+    self::setCookie(self::cfg('cookie_csrf', 'simplerewardoffer_csrf'), $csrf, $maxAge, false);
 
     return ['token' => $token, 'csrf' => $csrf, 'expires_at' => $expiresAt];
   }
@@ -213,10 +213,10 @@ class Guard
   {
     global $wpdb;
 
-    $raw = $_COOKIE[self::cfg('cookie_session', 'ro_session')] ?? '';
+    $raw = $_COOKIE[self::cfg('cookie_session', 'simplerewardoffer_session')] ?? '';
     if (is_string($raw) && strlen($raw) === 64 && ctype_xdigit($raw)) {
       $wpdb->update(
-        $wpdb->prefix . 'ro_sessions',
+        $wpdb->prefix . 'simplerewardoffer_sessions',
         ['revoked_at' => gmdate('Y-m-d H:i:s')],
         ['token_hash' => hash('sha256', $raw)],
         ['%s'],
@@ -235,7 +235,7 @@ class Guard
     global $wpdb;
 
     $wpdb->update(
-      $wpdb->prefix . 'ro_sessions',
+      $wpdb->prefix . 'simplerewardoffer_sessions',
       ['revoked_at' => gmdate('Y-m-d H:i:s')],
       ['user_id' => $userId, 'revoked_at' => null],
       ['%s'],
@@ -245,8 +245,8 @@ class Guard
 
   public static function clearCookies(): void
   {
-    self::setCookie(self::cfg('cookie_session', 'ro_session'), '', -3600, true);
-    self::setCookie(self::cfg('cookie_csrf', 'ro_csrf'), '', -3600, false);
+    self::setCookie(self::cfg('cookie_session', 'simplerewardoffer_session'), '', -3600, true);
+    self::setCookie(self::cfg('cookie_csrf', 'simplerewardoffer_csrf'), '', -3600, false);
   }
 
   /* ---------------------------------------------------------------------
@@ -266,7 +266,7 @@ class Guard
   {
     global $wpdb;
     $wpdb->update(
-      $wpdb->prefix . 'ro_sessions',
+      $wpdb->prefix . 'simplerewardoffer_sessions',
       ['last_used_at' => gmdate('Y-m-d H:i:s')],
       ['id' => $sessionId],
       ['%s'],
@@ -318,6 +318,6 @@ class Guard
 
   private static function cfg(string $key, $default = null)
   {
-    return SimpleRO()->config('custom.auth.' . $key, $default);
+    return SimpleRewardOffer()->config('custom.auth.' . $key, $default);
   }
 }

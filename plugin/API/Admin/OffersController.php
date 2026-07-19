@@ -1,12 +1,12 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * OffersController (admin) — view ingested offers and enable/disable them.
@@ -17,8 +17,8 @@ class OffersController extends RestController
   public function index()
   {
     global $wpdb;
-    $o = $wpdb->prefix . 'ro_offers';
-    $p = $wpdb->prefix . 'ro_providers';
+    $o = $wpdb->prefix . 'simplerewardoffer_offers';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
 
     $providerId = (int) $this->request->get_param('provider_id');
 
@@ -64,7 +64,7 @@ class OffersController extends RestController
   {
     global $wpdb;
     $id = (int) $this->request->get_param('id');
-    $t = $wpdb->prefix . 'ro_offers';
+    $t = $wpdb->prefix . 'simplerewardoffer_offers';
 
     if (!$wpdb->get_var($wpdb->prepare("SELECT id FROM {$t} WHERE id = %d", $id))) {
       return $this->responseError('ro_not_found', __('Offer not found.', 'simple-reward-offerwall'), 404);

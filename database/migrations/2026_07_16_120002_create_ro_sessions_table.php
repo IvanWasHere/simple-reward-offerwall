@@ -4,18 +4,18 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_sessions — opaque server-side sessions. We store only sha256(token); the raw
- * token lives in the httpOnly `ro_session` cookie. csrf_hash backs the double-submit
+ * simplerewardoffer_sessions — opaque server-side sessions. We store only sha256(token); the raw
+ * token lives in the httpOnly `simplerewardoffer_session` cookie. csrf_hash backs the double-submit
  * CSRF check. InnoDB for future FOR UPDATE / transactional revocation.
  */
 return new class extends Migration {
   public function up()
   {
     $this->create(
-      'ro_sessions',
+      'simplerewardoffer_sessions',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         user_id bigint(20) unsigned NOT NULL default 0,

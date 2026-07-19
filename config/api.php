@@ -17,12 +17,12 @@ return [
 
     // embed wp-json-server
     'wp' => [
-        // We run our OWN token-based auth (see SimpleRO\API\Auth\Guard); do not
+        // We run our OWN token-based auth (see SimpleRewardOffer\API\Auth\Guard); do not
         // force WordPress authentication on every REST route.
         'require_authentication' => false, // will affect all routes.
     ],
 
-    // your custom rest api — served at /wp-json/simple-ro/v1/... from api/simple-ro/v1/routes.php
+    // your custom rest api — served at /wp-json/simplerewardoffer/v1/... from api/simplerewardoffer/v1/routes.php
     'custom' => [
         'path' => '/api',
         'enabled' => true,

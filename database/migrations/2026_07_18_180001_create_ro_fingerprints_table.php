@@ -4,10 +4,10 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_fingerprints — a device/browser fingerprint captured each time a user logs
+ * simplerewardoffer_fingerprints — a device/browser fingerprint captured each time a user logs
  * in (client collects navigator/screen/timezone signals; the server adds IP +
  * request user-agent). visitor_id is a sha256 of the stable signal subset so the
  * same device is recognisable across logins. Shown to admins on the user detail
@@ -17,7 +17,7 @@ return new class extends Migration {
   public function up()
   {
     $this->create(
-      'ro_fingerprints',
+      'simplerewardoffer_fingerprints',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         user_id bigint(20) unsigned NOT NULL default 0,

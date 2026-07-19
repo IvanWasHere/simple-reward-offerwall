@@ -1,15 +1,15 @@
 <?php
 
-namespace SimpleRO\Providers;
+namespace SimpleRewardOffer\Providers;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Providers\Adapters\IframeAdapter;
-use SimpleRO\Providers\Adapters\OfferwallApiAdapter;
-use SimpleRO\Providers\Adapters\StaticApiAdapter;
-use SimpleRO\Providers\Contracts\ProviderAdapter;
+use SimpleRewardOffer\Providers\Adapters\IframeAdapter;
+use SimpleRewardOffer\Providers\Adapters\OfferwallApiAdapter;
+use SimpleRewardOffer\Providers\Adapters\StaticApiAdapter;
+use SimpleRewardOffer\Providers\Contracts\ProviderAdapter;
 
 /**
  * Resolves the ProviderAdapter for a provider row (by its type).

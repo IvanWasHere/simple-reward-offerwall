@@ -1,12 +1,12 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * MediaController (admin) — read-only view of the WordPress media library's images,

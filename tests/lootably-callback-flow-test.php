@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
 
 global $wpdb;
 
-use SimpleRO\Providers\Schemas\OfferSchemaRegistry;
+use SimpleRewardOffer\Providers\Schemas\OfferSchemaRegistry;
 
 const RO_LB_PROVIDER = 'ZZ Test — Lootably Callback Flow';
 const RO_LB_EMAIL    = 'zz-lootablyflow@example.test';
@@ -45,7 +45,7 @@ $sign = function (array $p): string {
 
 /** Fire a postback over real HTTP through the REST stack (GET, as Lootably does). */
 $fire = function (string $hash, array $params): array {
-  $url = home_url('/wp-json/simple-ro/v1/callback/' . $hash) . '?' . http_build_query($params);
+  $url = home_url('/wp-json/simplerewardoffer/v1/callback/' . $hash) . '?' . http_build_query($params);
   $res = wp_remote_get($url, ['timeout' => 15, 'sslverify' => false]);
   if (is_wp_error($res)) {
     return ['code' => 0, 'body' => ['error' => $res->get_error_message()]];
@@ -58,20 +58,20 @@ $fire = function (string $hash, array $params): array {
 
 $cleanup = function () use ($wpdb) {
   $p = $wpdb->prefix;
-  $providerIds = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$p}ro_providers WHERE name = %s", RO_LB_PROVIDER));
-  $userIds = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$p}ro_users WHERE email = %s", RO_LB_EMAIL));
+  $providerIds = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$p}simplerewardoffer_providers WHERE name = %s", RO_LB_PROVIDER));
+  $userIds = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$p}simplerewardoffer_users WHERE email = %s", RO_LB_EMAIL));
   if ($userIds) {
     $in = implode(',', array_map('intval', $userIds));
-    $wpdb->query("DELETE FROM {$p}ro_rewards WHERE user_id IN ({$in})");
-    $wpdb->query("DELETE FROM {$p}ro_callbacks WHERE user_id IN ({$in})");
-    $wpdb->query("DELETE FROM {$p}ro_users WHERE id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_rewards WHERE user_id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_callbacks WHERE user_id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_users WHERE id IN ({$in})");
   }
   if ($providerIds) {
     $in = implode(',', array_map('intval', $providerIds));
-    $wpdb->query("DELETE FROM {$p}ro_callbacks WHERE provider_id IN ({$in})");
-    $wpdb->query("DELETE FROM {$p}ro_provider_callbacks WHERE provider_id IN ({$in})");
-    $wpdb->query("DELETE FROM {$p}ro_offers WHERE provider_id IN ({$in})");
-    $wpdb->query("DELETE FROM {$p}ro_providers WHERE id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_callbacks WHERE provider_id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_provider_callbacks WHERE provider_id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_offers WHERE provider_id IN ({$in})");
+    $wpdb->query("DELETE FROM {$p}simplerewardoffer_providers WHERE id IN ({$in})");
   }
 };
 
@@ -87,7 +87,7 @@ try {
   $now = gmdate('Y-m-d H:i:s');
 
   // 1) Provider ------------------------------------------------------------
-  $wpdb->insert($wpdb->prefix . 'ro_providers', [
+  $wpdb->insert($wpdb->prefix . 'simplerewardoffer_providers', [
     'unique_provider_hash' => bin2hex(random_bytes(16)),
     'name'         => RO_LB_PROVIDER,
     'type'         => 'static_api',
@@ -112,7 +112,7 @@ try {
   ];
   foreach ($rawOffers as $raw) {
     $n = $schema->mapOffer($raw);
-    $wpdb->insert($wpdb->prefix . 'ro_offers', [
+    $wpdb->insert($wpdb->prefix . 'simplerewardoffer_offers', [
       'provider_id'       => $providerId,
       'provider_offer_id' => $n['providerOfferId'],
       'name'              => $n['name'],
@@ -129,14 +129,14 @@ try {
       'updated_at'        => $now,
     ]);
   }
-  $offerCount = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}ro_offers WHERE provider_id = %d", $providerId));
+  $offerCount = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}simplerewardoffer_offers WHERE provider_id = %d", $providerId));
   $check('offers created and connected to provider', $offerCount === count($rawOffers), "expected " . count($rawOffers) . ", got {$offerCount}");
-  $multiPayout = (float) $wpdb->get_var($wpdb->prepare("SELECT total_payout FROM {$wpdb->prefix}ro_offers WHERE provider_id = %d AND provider_offer_id = 'lb-multi-1'", $providerId));
+  $multiPayout = (float) $wpdb->get_var($wpdb->prepare("SELECT total_payout FROM {$wpdb->prefix}simplerewardoffer_offers WHERE provider_id = %d AND provider_offer_id = 'lb-multi-1'", $providerId));
   $check('multistep offer payout = sum of goals (350)', $multiPayout === 350.0, "got {$multiPayout}");
 
   // 3) User (userID sent to Lootably = our id, verified by the hash) --------
   $userHash = bin2hex(random_bytes(16));
-  $wpdb->insert($wpdb->prefix . 'ro_users', [
+  $wpdb->insert($wpdb->prefix . 'simplerewardoffer_users', [
     'email'            => RO_LB_EMAIL,
     'password_hash'    => 'x',
     'display_name'     => 'Lootably Flow Test',
@@ -151,7 +151,7 @@ try {
 
   // 4) Callback carrying every macro, signed with SHA256 -------------------
   $cbHash = bin2hex(random_bytes(16));
-  $wpdb->insert($wpdb->prefix . 'ro_provider_callbacks', [
+  $wpdb->insert($wpdb->prefix . 'simplerewardoffer_provider_callbacks', [
     'provider_id'      => $providerId,
     'name'             => 'All macros',
     'unique_hash'      => $cbHash,
@@ -176,8 +176,8 @@ try {
 
   $lookup = function (string $txn, string $type) use ($wpdb) {
     $p = $wpdb->prefix;
-    $cb = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$p}ro_callbacks WHERE transaction_id = %s AND callback_type = %s", $txn, $type));
-    $reward = $cb ? $wpdb->get_row($wpdb->prepare("SELECT * FROM {$p}ro_rewards WHERE callback_id = %d", (int) $cb->id)) : null;
+    $cb = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$p}simplerewardoffer_callbacks WHERE transaction_id = %s AND callback_type = %s", $txn, $type));
+    $reward = $cb ? $wpdb->get_row($wpdb->prepare("SELECT * FROM {$p}simplerewardoffer_rewards WHERE callback_id = %d", (int) $cb->id)) : null;
     return [$cb, $reward];
   };
 
@@ -222,7 +222,7 @@ try {
     is_array($mapped) && ($mapped['ip'] ?? null) === '203.0.113.9' && (string) ($mapped['revenue'] ?? '') === '1.2' && ($mapped['sid2'] ?? null) === 'unit-test',
     isset($mapped['ip']) ? "ip={$mapped['ip']} revenue=" . ($mapped['revenue'] ?? '') : 'no mapped payload');
 
-  $rewardTotal = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}ro_rewards WHERE user_id = %d", $userId));
+  $rewardTotal = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}simplerewardoffer_rewards WHERE user_id = %d", $userId));
   $check('exactly two rewards (paid conversion + chargeback)', $rewardTotal === 2, "reward rows = {$rewardTotal}");
 } catch (\Throwable $e) {
   $results[] = ['ok' => false, 'label' => 'unexpected exception', 'detail' => $e->getMessage()];

@@ -1,12 +1,12 @@
 <?php
 
-namespace SimpleRO\Providers\Schemas;
+namespace SimpleRewardOffer\Providers\Schemas;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Providers\Schemas\Contracts\OfferSchema;
+use SimpleRewardOffer\Providers\Schemas\Contracts\OfferSchema;
 
 /**
  * AyetStudiosSchema — mapping for the AyetStudios Static/Offerwall API.

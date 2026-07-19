@@ -8,7 +8,7 @@
  *   thrown ApiError.
  */
 
-export interface SimpleROConfig {
+export interface SimpleRewardOfferConfig {
   restBase: string;
   app: 'user' | 'admin' | 'support';
   cookieCsrf: string;
@@ -19,7 +19,7 @@ export interface SimpleROConfig {
 
 declare global {
   interface Window {
-    SimpleRO: SimpleROConfig;
+    SimpleRewardOffer: SimpleRewardOfferConfig;
   }
 }
 
@@ -48,7 +48,7 @@ export interface ApiOptions {
 }
 
 export async function api< T = any >( path: string, opts: ApiOptions = {} ): Promise< T > {
-  const cfg = window.SimpleRO;
+  const cfg = window.SimpleRewardOffer;
   const method = opts.method ?? 'GET';
   const headers: Record< string, string > = { Accept: 'application/json' };
 

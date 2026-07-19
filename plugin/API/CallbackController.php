@@ -1,20 +1,20 @@
 <?php
 
-namespace SimpleRO\API;
+namespace SimpleRewardOffer\API;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Providers\Schemas\OfferSchemaRegistry;
-use SimpleRO\Services\Settings;
-use SimpleRO\Services\SignatureVerifier;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\Providers\Schemas\OfferSchemaRegistry;
+use SimpleRewardOffer\Services\Settings;
+use SimpleRewardOffer\Services\SignatureVerifier;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * CallbackController — public server-to-server postback ingest.
  *
- *   GET|POST /wp-json/simple-ro/v1/callback/{unique_hash}
+ *   GET|POST /wp-json/simplerewardoffer/v1/callback/{unique_hash}
  *
  * The provider is configured with this exact URL. We select the callback config
  * by hash, verify the signature, map the incoming params to our fields, log the
@@ -36,8 +36,8 @@ class CallbackController extends RestController
       return $this->responseError('ro_not_found', __('Unknown callback.', 'simple-reward-offerwall'), 404);
     }
 
-    $cbTable = $wpdb->prefix . 'ro_provider_callbacks';
-    $pTable = $wpdb->prefix . 'ro_providers';
+    $cbTable = $wpdb->prefix . 'simplerewardoffer_provider_callbacks';
+    $pTable = $wpdb->prefix . 'simplerewardoffer_providers';
     $callback = $wpdb->get_row($wpdb->prepare(
       "SELECT c.*, p.coin_rate, p.offer_schema, p.status AS provider_status
          FROM {$cbTable} c
@@ -90,7 +90,7 @@ class CallbackController extends RestController
     // Resolve our user: a directly-mapped user_id (legacy), or a verified
     // external_identifier (<prefix>-<user_id>-<user_hash>). The 128-bit user_hash
     // is the callback's shared secret, so a forged id can't be minted.
-    $users = $wpdb->prefix . 'ro_users';
+    $users = $wpdb->prefix . 'simplerewardoffer_users';
     $userId = (int) ($mapped['user_id'] ?? 0);
     $ext = trim((string) ($mapped['external_identifier'] ?? ''));
     if ($userId <= 0 && $ext !== '') {
@@ -132,7 +132,7 @@ class CallbackController extends RestController
     // Every callback is logged, including audit-only types.
     $suppress = $wpdb->suppress_errors(true);
     $inserted = $wpdb->insert(
-      $wpdb->prefix . 'ro_callbacks',
+      $wpdb->prefix . 'simplerewardoffer_callbacks',
       [
         'provider_id'          => (int) $callback->provider_id,
         'provider_callback_id' => (int) $callback->id,
@@ -169,7 +169,7 @@ class CallbackController extends RestController
     // Create the pending reward. coins may be negative for chargebacks/reversals.
     // Coins are only credited later, on admin approval.
     $wpdb->insert(
-      $wpdb->prefix . 'ro_rewards',
+      $wpdb->prefix . 'simplerewardoffer_rewards',
       [
         'user_id'     => $userId,
         'callback_id' => $callbackId,
@@ -186,7 +186,7 @@ class CallbackController extends RestController
 
   /**
    * Resolve + verify our user from an incoming external_identifier. Returns the
-   * user id only when the embedded hash matches ro_users.unique_user_hash
+   * user id only when the embedded hash matches simplerewardoffer_users.unique_user_hash
    * (constant-time), else 0.
    */
   private function resolveUserFromExternalId(string $externalId): int
@@ -199,7 +199,7 @@ class CallbackController extends RestController
     }
 
     $row = $wpdb->get_row($wpdb->prepare(
-      "SELECT id, unique_user_hash FROM {$wpdb->prefix}ro_users WHERE id = %d LIMIT 1",
+      "SELECT id, unique_user_hash FROM {$wpdb->prefix}simplerewardoffer_users WHERE id = %d LIMIT 1",
       $userId
     ));
     if (!$row || !hash_equals((string) $row->unique_user_hash, $hash)) {
@@ -218,7 +218,7 @@ class CallbackController extends RestController
   private function logReject(int $callbackConfigId, string $reason, string $ip): void
   {
     if (function_exists('logger')) {
-      logger()->error("[simple-ro] callback rejected", ['callback' => $callbackConfigId, 'reason' => $reason, 'ip' => $ip]);
+      logger()->error("[simplerewardoffer] callback rejected", ['callback' => $callbackConfigId, 'reason' => $reason, 'ip' => $ip]);
     }
   }
 }

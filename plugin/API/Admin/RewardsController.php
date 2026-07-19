@@ -1,15 +1,15 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Services\LedgerService;
-use SimpleRO\Services\ReferralService;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Services\LedgerService;
+use SimpleRewardOffer\Services\ReferralService;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * RewardsController (admin) — the reward-approval queue.
@@ -25,10 +25,10 @@ class RewardsController extends RestController
     $status = (string) $this->request->get_param('status');
     $status = in_array($status, ['pending', 'approved', 'rejected'], true) ? $status : 'pending';
 
-    $r = $wpdb->prefix . 'ro_rewards';
-    $c = $wpdb->prefix . 'ro_callbacks';
-    $p = $wpdb->prefix . 'ro_providers';
-    $u = $wpdb->prefix . 'ro_users';
+    $r = $wpdb->prefix . 'simplerewardoffer_rewards';
+    $c = $wpdb->prefix . 'simplerewardoffer_callbacks';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
+    $u = $wpdb->prefix . 'simplerewardoffer_users';
 
     $rows = $wpdb->get_results($wpdb->prepare(
       "SELECT rw.id, rw.user_id, rw.coins_value, rw.status, rw.created_at,
@@ -53,7 +53,7 @@ class RewardsController extends RestController
     global $wpdb;
     $id = (int) $this->request->get_param('id');
     $admin = Guard::user($this->request);
-    $r = $wpdb->prefix . 'ro_rewards';
+    $r = $wpdb->prefix . 'simplerewardoffer_rewards';
 
     $wpdb->query('START TRANSACTION');
 
@@ -93,7 +93,7 @@ class RewardsController extends RestController
     global $wpdb;
     $id = (int) $this->request->get_param('id');
     $admin = Guard::user($this->request);
-    $r = $wpdb->prefix . 'ro_rewards';
+    $r = $wpdb->prefix . 'simplerewardoffer_rewards';
 
     $reward = $wpdb->get_row($wpdb->prepare("SELECT status FROM {$r} WHERE id = %d LIMIT 1", $id));
     if (!$reward) {

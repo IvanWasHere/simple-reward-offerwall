@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
 | Custom configuration
 |--------------------------------------------------------------------------
 |
-| Reward-offerwall settings. Read anywhere via SimpleRO()->config('custom.<key>').
+| Reward-offerwall settings. Read anywhere via SimpleRewardOffer()->config('custom.<key>').
 | Money is stored in integer minor units (cents); coins are integers. Never float.
 |
 */
@@ -21,14 +21,14 @@ return [
   // A provider row may override this with its own coin_rate.
   'coins_per_currency_unit' => 100,
 
-  // Auth / session tuning (see SimpleRO\API\Auth\Guard).
+  // Auth / session tuning (see SimpleRewardOffer\API\Auth\Guard).
   'auth' => [
     'session_ttl_days'        => 14,   // absolute session lifetime
     'reset_ttl_minutes'       => 30,   // password-reset token lifetime
     'login_max_attempts'      => 5,    // failures before soft-lock
     'login_window_minutes'    => 15,   // sliding window for the counter
-    'cookie_session'          => 'ro_session',
-    'cookie_csrf'             => 'ro_csrf',
+    'cookie_session'          => 'simplerewardoffer_session',
+    'cookie_csrf'             => 'simplerewardoffer_csrf',
     'csrf_header'             => 'X-RO-CSRF',
   ],
 
@@ -41,7 +41,7 @@ return [
   'app_name' => 'RewardVault',
 
   // Default for the site-level external-id prefix. Admins override this at runtime
-  // via PUT /admin/settings (stored in the simple_ro_settings option). The
+  // via PUT /admin/settings (stored in the simplerewardoffer_settings option). The
   // {external_id} iframe macro expands to "<prefix>-<user_id>-<user_hash>".
   'external_id' => [
     'prefix' => '',
@@ -78,7 +78,7 @@ return [
   ],
 
   // WP pages hosting the staff SPAs (by slug). The shortcodes
-  // [simple_ro_admin_app] / [simple_ro_support_app] are placed on these pages.
+  // [simplerewardoffer_admin_app] / [simplerewardoffer_support_app] are placed on these pages.
   // (The user app moved to the /reward takeover; no 'user' page anymore.)
   'pages' => [
     'admin'   => 'offerwall-admin',

@@ -4,17 +4,17 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_support_requests — support tickets opened by users. assigned_to is a support
- * (or admin) ro_users id, 0 = unassigned. status: open | pending | closed.
+ * simplerewardoffer_support_requests — support tickets opened by users. assigned_to is a support
+ * (or admin) simplerewardoffer_users id, 0 = unassigned. status: open | pending | closed.
  */
 return new class extends Migration {
   public function up()
   {
     $this->create(
-      'ro_support_requests',
+      'simplerewardoffer_support_requests',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         user_id bigint(20) unsigned NOT NULL default 0,

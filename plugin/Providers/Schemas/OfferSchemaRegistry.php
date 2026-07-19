@@ -1,17 +1,17 @@
 <?php
 
-namespace SimpleRO\Providers\Schemas;
+namespace SimpleRewardOffer\Providers\Schemas;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Providers\Schemas\Contracts\OfferSchema;
+use SimpleRewardOffer\Providers\Schemas\Contracts\OfferSchema;
 
 /**
  * OfferSchemaRegistry — the built-in list of provider offer schemas. Add a network
  * by adding its OfferSchema class to schemas(). Providers reference a schema by
- * key (ro_providers.offer_schema); '' / unknown means "no schema" (legacy
+ * key (simplerewardoffer_providers.offer_schema); '' / unknown means "no schema" (legacy
  * config.field_map path).
  */
 class OfferSchemaRegistry

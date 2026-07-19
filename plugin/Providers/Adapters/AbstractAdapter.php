@@ -1,19 +1,19 @@
 <?php
 
-namespace SimpleRO\Providers\Adapters;
+namespace SimpleRewardOffer\Providers\Adapters;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Providers\Contracts\ProviderAdapter;
-use SimpleRO\Providers\Schemas\Contracts\OfferSchema;
-use SimpleRO\Providers\Schemas\OfferSchemaRegistry;
+use SimpleRewardOffer\Providers\Contracts\ProviderAdapter;
+use SimpleRewardOffer\Providers\Schemas\Contracts\OfferSchema;
+use SimpleRewardOffer\Providers\Schemas\OfferSchemaRegistry;
 
 /**
  * AbstractAdapter — shared config parsing, HTTP fetch and offer normalization.
  *
- * When a provider names a built-in schema (ro_providers.offer_schema), that schema
+ * When a provider names a built-in schema (simplerewardoffer_providers.offer_schema), that schema
  * drives the HTTP method, offers_path and per-offer mapping. Otherwise we fall back
  * to the legacy `config` JSON:
  *   {
@@ -136,7 +136,7 @@ abstract class AbstractAdapter implements ProviderAdapter
   protected function fetchRawOffers(object $provider, array $context): array
   {
     $cfg = $this->config($provider);
-    $url = \SimpleRO\Services\MacroBuilder::build((string) $provider->url, $this->macros($provider), $context);
+    $url = \SimpleRewardOffer\Services\MacroBuilder::build((string) $provider->url, $this->macros($provider), $context);
 
     $headers = ['Accept' => 'application/json'];
     $auth = $cfg['auth'] ?? [];
@@ -168,7 +168,7 @@ abstract class AbstractAdapter implements ProviderAdapter
     }
     if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) !== 200) {
       if (function_exists('logger')) {
-        logger()->error('[simple-ro] provider fetch failed', ['provider' => $provider->id]);
+        logger()->error('[simplerewardoffer] provider fetch failed', ['provider' => $provider->id]);
       }
       return [];
     }

@@ -1,16 +1,16 @@
 <?php
 
-namespace SimpleRO\API\User;
+namespace SimpleRewardOffer\API\User;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * LeaderboardController — top 25 earners for today / this week (since Sunday) /
- * this month. Reads the denormalised per-period counters on ro_users (maintained
+ * this month. Reads the denormalised per-period counters on simplerewardoffer_users (maintained
  * by LedgerService) filtered to the current period marker, so it never SUM()s the
  * ledger. Exposes only a display name + amount; no emails or ids.
  */
@@ -19,7 +19,7 @@ class LeaderboardController extends RestController
   public function index()
   {
     global $wpdb;
-    $u = $wpdb->prefix . 'ro_users';
+    $u = $wpdb->prefix . 'simplerewardoffer_users';
 
     // Resolve period → the counter column, its marker column, and the current
     // marker value. Columns come from a fixed whitelist (safe to interpolate).

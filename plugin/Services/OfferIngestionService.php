@@ -1,16 +1,16 @@
 <?php
 
-namespace SimpleRO\Services;
+namespace SimpleRewardOffer\Services;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\Providers\ProviderAdapterFactory;
+use SimpleRewardOffer\Providers\ProviderAdapterFactory;
 use Throwable;
 
 /**
- * OfferIngestionService — pulls offers for static_api providers into ro_offers.
+ * OfferIngestionService — pulls offers for static_api providers into simplerewardoffer_offers.
  * Reused by the hourly schedule (IngestOffersSchedule) and the admin manual
  * trigger. Each provider is isolated so one failing feed doesn't abort the rest.
  */
@@ -26,7 +26,7 @@ class OfferIngestionService
     global $wpdb;
 
     $providers = $wpdb->get_results(
-      "SELECT * FROM {$wpdb->prefix}ro_providers WHERE status = 'active' AND type = 'static_api'"
+      "SELECT * FROM {$wpdb->prefix}simplerewardoffer_providers WHERE status = 'active' AND type = 'static_api'"
     );
 
     $results = [];
@@ -44,7 +44,7 @@ class OfferIngestionService
       return ProviderAdapterFactory::for($provider)->ingest($provider);
     } catch (Throwable $e) {
       if (function_exists('logger')) {
-        logger()->error('[simple-ro] ingest failed', ['provider' => $provider->id, 'error' => $e->getMessage()]);
+        logger()->error('[simplerewardoffer] ingest failed', ['provider' => $provider->id, 'error' => $e->getMessage()]);
       }
       return -1;
     }

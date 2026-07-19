@@ -4,10 +4,10 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_callbacks — every received S2S postback (audit log). Idempotency key is
+ * simplerewardoffer_callbacks — every received S2S postback (audit log). Idempotency key is
  * UNIQUE(provider_id, transaction_id, callback_type): a network (e.g. ayet) shares
  * one transaction_id across a paid conversion and its "optional" (visible-unpaid)
  * callback, so callback_type keeps them as distinct rows. `amount` is the provider
@@ -19,7 +19,7 @@ return new class extends Migration {
     global $wpdb;
 
     $this->create(
-      'ro_callbacks',
+      'simplerewardoffer_callbacks',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         provider_id bigint(20) unsigned NOT NULL default 0,
@@ -47,7 +47,7 @@ return new class extends Migration {
     // dbDelta adds the callback_type column + new composite index on an existing
     // table but cannot drop the old 2-column UNIQUE, which would still block the
     // conversion/optional shared-txn pair. Retire it explicitly (idempotent).
-    $table = $wpdb->prefix . 'ro_callbacks';
+    $table = $wpdb->prefix . 'simplerewardoffer_callbacks';
     if ($wpdb->get_var("SHOW INDEX FROM {$table} WHERE Key_name = 'provider_txn'")) {
       $wpdb->query("ALTER TABLE {$table} DROP INDEX provider_txn");
     }

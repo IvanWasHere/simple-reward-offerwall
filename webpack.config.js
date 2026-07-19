@@ -50,6 +50,11 @@ module.exports = {
     ...defaultConfig.output,
     path: path.resolve(__dirname, 'public'),
     filename: '[name].js',
+    // wp-scripts cleans the whole `public/` dir (keeping only fonts/images) on
+    // each build. The Vite user/admin apps also emit into `public/apps/{user,admin}`,
+    // so preserve those dirs — otherwise `npm run build` after `build:user`/`build:admin`
+    // would wipe their bundles and the SPAs would 404.
+    clean: { keep: /^(fonts|images|apps\/(user|admin)\/)/ },
   },
   plugins: [
     ...defaultConfig.plugins,

@@ -4,10 +4,10 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_offers — offers pulled from a provider (primarily static_api, saved on a
+ * simplerewardoffer_offers — offers pulled from a provider (primarily static_api, saved on a
  * schedule; offerwall_api offers are usually served live/cached, not stored).
  * Deduped by (provider_id, provider_offer_id). total_payout is the provider's
  * payout in currency units; raw_json keeps the untouched source for audit.
@@ -16,7 +16,7 @@ return new class extends Migration {
   public function up()
   {
     $this->create(
-      'ro_offers',
+      'simplerewardoffer_offers',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         provider_id bigint(20) unsigned NOT NULL default 0,

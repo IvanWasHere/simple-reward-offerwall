@@ -4,17 +4,17 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_support_messages — threaded replies on a support ticket. author_type records
+ * simplerewardoffer_support_messages — threaded replies on a support ticket. author_type records
  * whether the author was the user or a staff member (support/admin).
  */
 return new class extends Migration {
   public function up()
   {
     $this->create(
-      'ro_support_messages',
+      'simplerewardoffer_support_messages',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         ticket_id bigint(20) unsigned NOT NULL default 0,

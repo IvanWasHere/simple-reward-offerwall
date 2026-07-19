@@ -1,12 +1,12 @@
 <?php
 
-namespace SimpleRO\API\Admin;
+namespace SimpleRewardOffer\API\Admin;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * StatsController (admin) — headline counters for the admin dashboard.
@@ -24,42 +24,42 @@ class StatsController extends RestController
 
     $stats = [
       'users' => [
-        'total'   => $var("SELECT COUNT(*) FROM {$p}ro_users"),
-        'user'    => $var("SELECT COUNT(*) FROM {$p}ro_users WHERE type = 'user'"),
-        'support' => $var("SELECT COUNT(*) FROM {$p}ro_users WHERE type = 'support'"),
-        'admin'   => $var("SELECT COUNT(*) FROM {$p}ro_users WHERE type = 'admin'"),
-        'blocked' => $var("SELECT COUNT(*) FROM {$p}ro_users WHERE status = 'blocked'"),
+        'total'   => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_users"),
+        'user'    => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_users WHERE type = 'user'"),
+        'support' => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_users WHERE type = 'support'"),
+        'admin'   => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_users WHERE type = 'admin'"),
+        'blocked' => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_users WHERE status = 'blocked'"),
       ],
       'providers' => [
-        'total'  => $var("SELECT COUNT(*) FROM {$p}ro_providers"),
-        'active' => $var("SELECT COUNT(*) FROM {$p}ro_providers WHERE status = 'active'"),
+        'total'  => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_providers"),
+        'active' => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_providers WHERE status = 'active'"),
       ],
       'offers' => [
-        'active' => $var("SELECT COUNT(*) FROM {$p}ro_offers WHERE active = 1 AND admin_disabled = 0"),
+        'active' => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_offers WHERE active = 1 AND admin_disabled = 0"),
       ],
       'rewards' => [
-        'pending'       => $var("SELECT COUNT(*) FROM {$p}ro_rewards WHERE status = 'pending'"),
-        'pendingCoins'  => $var("SELECT COALESCE(SUM(coins_value),0) FROM {$p}ro_rewards WHERE status = 'pending'"),
-        'approved'      => $var("SELECT COUNT(*) FROM {$p}ro_rewards WHERE status = 'approved'"),
+        'pending'       => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_rewards WHERE status = 'pending'"),
+        'pendingCoins'  => $var("SELECT COALESCE(SUM(coins_value),0) FROM {$p}simplerewardoffer_rewards WHERE status = 'pending'"),
+        'approved'      => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_rewards WHERE status = 'approved'"),
       ],
       'redemptions' => [
-        'pending'      => $var("SELECT COUNT(*) FROM {$p}ro_redemptions WHERE status = 'pending'"),
-        'pendingCoins' => $var("SELECT COALESCE(SUM(coins_spent),0) FROM {$p}ro_redemptions WHERE status = 'pending'"),
+        'pending'      => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_redemptions WHERE status = 'pending'"),
+        'pendingCoins' => $var("SELECT COALESCE(SUM(coins_spent),0) FROM {$p}simplerewardoffer_redemptions WHERE status = 'pending'"),
       ],
       'coins' => [
         // Total coins currently held by users (sum of the whole ledger).
-        'outstanding' => $var("SELECT COALESCE(SUM(delta),0) FROM {$p}ro_coin_ledger"),
+        'outstanding' => $var("SELECT COALESCE(SUM(delta),0) FROM {$p}simplerewardoffer_coin_ledger"),
       ],
       'callbacks' => [
-        'total'    => $var("SELECT COUNT(*) FROM {$p}ro_callbacks"),
+        'total'    => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_callbacks"),
         'last24h'  => $var($wpdb->prepare(
-          "SELECT COUNT(*) FROM {$p}ro_callbacks WHERE created_at > %s",
+          "SELECT COUNT(*) FROM {$p}simplerewardoffer_callbacks WHERE created_at > %s",
           gmdate('Y-m-d H:i:s', time() - DAY_IN_SECONDS)
         )),
       ],
       'supportTickets' => [
-        'open'    => $var("SELECT COUNT(*) FROM {$p}ro_support_requests WHERE status = 'open'"),
-        'pending' => $var("SELECT COUNT(*) FROM {$p}ro_support_requests WHERE status = 'pending'"),
+        'open'    => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_support_requests WHERE status = 'open'"),
+        'pending' => $var("SELECT COUNT(*) FROM {$p}simplerewardoffer_support_requests WHERE status = 'pending'"),
       ],
     ];
 

@@ -1,16 +1,16 @@
 <?php
 
-namespace SimpleRO\API\User;
+namespace SimpleRewardOffer\API\User;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Providers\ProviderAdapterFactory;
-use SimpleRO\Services\MacroBuilder;
-use SimpleRO\Services\Settings;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Providers\ProviderAdapterFactory;
+use SimpleRewardOffer\Services\MacroBuilder;
+use SimpleRewardOffer\Services\Settings;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * ClicksController (user) — records a click on an offer and returns the outbound
@@ -32,7 +32,7 @@ class ClicksController extends RestController
     }
 
     $provider = $wpdb->get_row($wpdb->prepare(
-      "SELECT * FROM {$wpdb->prefix}ro_providers WHERE id = %d AND status = 'active' LIMIT 1",
+      "SELECT * FROM {$wpdb->prefix}simplerewardoffer_providers WHERE id = %d AND status = 'active' LIMIT 1",
       $providerId
     ));
     if (!$provider) {
@@ -46,7 +46,7 @@ class ClicksController extends RestController
     }
 
     $wpdb->insert(
-      $wpdb->prefix . 'ro_clicked',
+      $wpdb->prefix . 'simplerewardoffer_clicked',
       [
         'provider_id'       => $providerId,
         'offer_id'          => $offerRowId,
@@ -72,7 +72,7 @@ class ClicksController extends RestController
 
     if ($provider->type === 'static_api') {
       $row = $wpdb->get_row($wpdb->prepare(
-        "SELECT id, link FROM {$wpdb->prefix}ro_offers
+        "SELECT id, link FROM {$wpdb->prefix}simplerewardoffer_offers
           WHERE provider_id = %d AND provider_offer_id = %s AND active = 1 AND admin_disabled = 0 LIMIT 1",
         (int) $provider->id,
         $providerOfferId

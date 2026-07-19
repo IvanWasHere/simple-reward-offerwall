@@ -1,17 +1,17 @@
 <?php
 
-namespace SimpleRO\Models;
+namespace SimpleRewardOffer\Models;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Model;
+use SimpleRewardOffer\WPBones\Database\Model;
 
 /**
- * RoCallback — maps to wp_ro_callbacks.
+ * RoCallback — maps to wp_simplerewardoffer_callbacks.
  */
 class RoCallback extends Model
 {
-  protected $table = 'ro_callbacks';
+  protected $table = 'simplerewardoffer_callbacks';
 }

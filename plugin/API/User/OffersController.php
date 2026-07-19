@@ -1,18 +1,18 @@
 <?php
 
-namespace SimpleRO\API\User;
+namespace SimpleRewardOffer\API\User;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Providers\ProviderAdapterFactory;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Providers\ProviderAdapterFactory;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * OffersController (user) — the normalized offers feed rendered with our design.
- * Merges stored static_api offers (ro_offers) with live offerwall_api offers
+ * Merges stored static_api offers (simplerewardoffer_offers) with live offerwall_api offers
  * (fetched + cached per request via the adapters).
  */
 class OffersController extends RestController
@@ -30,8 +30,8 @@ class OffersController extends RestController
   private function staticOffers(): array
   {
     global $wpdb;
-    $o = $wpdb->prefix . 'ro_offers';
-    $p = $wpdb->prefix . 'ro_providers';
+    $o = $wpdb->prefix . 'simplerewardoffer_offers';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
 
     $rows = $wpdb->get_results(
       "SELECT o.*, p.name AS provider_name, p.coin_rate
@@ -65,7 +65,7 @@ class OffersController extends RestController
   private function liveOffers(object $user): array
   {
     global $wpdb;
-    $p = $wpdb->prefix . 'ro_providers';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
 
     $providers = $wpdb->get_results(
       "SELECT * FROM {$p} WHERE status = 'active' AND type = 'offerwall_api'"

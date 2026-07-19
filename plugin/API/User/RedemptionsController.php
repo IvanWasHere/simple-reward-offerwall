@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\API\User;
+namespace SimpleRewardOffer\API\User;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Services\LedgerService;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Services\LedgerService;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * RedemptionsController (user) — browse the payout catalog and redeem coins.
@@ -24,7 +24,7 @@ class RedemptionsController extends RestController
   {
     global $wpdb;
     $user = Guard::user($this->request);
-    $t = $wpdb->prefix . 'ro_payouts';
+    $t = $wpdb->prefix . 'simplerewardoffer_payouts';
 
     $rows = $wpdb->get_results(
       "SELECT * FROM {$t} WHERE status = 'active' AND stock <> 0 ORDER BY value_coins ASC"
@@ -60,8 +60,8 @@ class RedemptionsController extends RestController
       return $this->responseError('ro_invalid', __('A payout is required.', 'simple-reward-offerwall'), 422);
     }
 
-    $usersT = $wpdb->prefix . 'ro_users';
-    $payoutsT = $wpdb->prefix . 'ro_payouts';
+    $usersT = $wpdb->prefix . 'simplerewardoffer_users';
+    $payoutsT = $wpdb->prefix . 'simplerewardoffer_payouts';
 
     $wpdb->query('START TRANSACTION');
 
@@ -84,7 +84,7 @@ class RedemptionsController extends RestController
     $cost = (int) $payout->value_coins;
 
     $balance = (int) $wpdb->get_var($wpdb->prepare(
-      "SELECT COALESCE(SUM(delta),0) FROM {$wpdb->prefix}ro_coin_ledger WHERE user_id = %d",
+      "SELECT COALESCE(SUM(delta),0) FROM {$wpdb->prefix}simplerewardoffer_coin_ledger WHERE user_id = %d",
       $userId
     ));
 
@@ -95,7 +95,7 @@ class RedemptionsController extends RestController
 
     $now = gmdate('Y-m-d H:i:s');
     $wpdb->insert(
-      $wpdb->prefix . 'ro_redemptions',
+      $wpdb->prefix . 'simplerewardoffer_redemptions',
       [
         'user_id'     => $userId,
         'payout_id'   => $payoutId,
@@ -128,8 +128,8 @@ class RedemptionsController extends RestController
     global $wpdb;
     $user = Guard::user($this->request);
 
-    $r = $wpdb->prefix . 'ro_redemptions';
-    $p = $wpdb->prefix . 'ro_payouts';
+    $r = $wpdb->prefix . 'simplerewardoffer_redemptions';
+    $p = $wpdb->prefix . 'simplerewardoffer_payouts';
 
     $rows = $wpdb->get_results($wpdb->prepare(
       "SELECT rd.id, rd.coins_spent, rd.status, rd.created_at, p.name AS payout_name, p.value_money, p.currency

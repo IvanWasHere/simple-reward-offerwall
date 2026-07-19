@@ -4,10 +4,10 @@ if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Database\Migrations\Migration;
+use SimpleRewardOffer\WPBones\Database\Migrations\Migration;
 
 /**
- * ro_payouts — the redeemable rewards catalog (e.g. gift cards).
+ * simplerewardoffer_payouts — the redeemable rewards catalog (e.g. gift cards).
  * value_money is stored in integer minor units (cents); value_coins is the coin
  * price. stock = -1 means unlimited.
  */
@@ -15,7 +15,7 @@ return new class extends Migration {
   public function up()
   {
     $this->create(
-      'ro_payouts',
+      'simplerewardoffer_payouts',
       "(
         id bigint(20) unsigned NOT NULL auto_increment,
         name varchar(190) NOT NULL default '',

@@ -1,14 +1,14 @@
 <?php
 
-namespace SimpleRO\API\User;
+namespace SimpleRewardOffer\API\User;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\API\Auth\Guard;
-use SimpleRO\Providers\ProviderAdapterFactory;
-use SimpleRO\WPBones\Routing\API\RestController;
+use SimpleRewardOffer\API\Auth\Guard;
+use SimpleRewardOffer\Providers\ProviderAdapterFactory;
+use SimpleRewardOffer\WPBones\Routing\API\RestController;
 
 /**
  * OfferwallsController — the offerwalls a signed-in user can open.
@@ -20,7 +20,7 @@ class OfferwallsController extends RestController
   public function index()
   {
     global $wpdb;
-    $p = $wpdb->prefix . 'ro_providers';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
 
     $rows = $wpdb->get_results(
       "SELECT id, name, type, unique_provider_hash, config
@@ -58,7 +58,7 @@ class OfferwallsController extends RestController
    * Offerwall opens are NOT recorded as clicks — an offerwall leads to the
    * provider's own site (many offers), we don't offer support for it, and postback
    * correlation is by the user_id/user_hash/external_id URL macros, not a stored
-   * click nonce. Only real offers (ro_offers, via ClicksController) are tracked.
+   * click nonce. Only real offers (simplerewardoffer_offers, via ClicksController) are tracked.
    */
   public function url()
   {
@@ -66,7 +66,7 @@ class OfferwallsController extends RestController
     $user = Guard::user($this->request);
     $id = (int) $this->request->get_param('id');
 
-    $p = $wpdb->prefix . 'ro_providers';
+    $p = $wpdb->prefix . 'simplerewardoffer_providers';
     $provider = $wpdb->get_row($wpdb->prepare(
       "SELECT * FROM {$p} WHERE id = %d AND status = 'active' LIMIT 1",
       $id

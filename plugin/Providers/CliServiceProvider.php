@@ -1,18 +1,18 @@
 <?php
 
-namespace SimpleRO\Providers;
+namespace SimpleRewardOffer\Providers;
 
 if (!defined('ABSPATH')) {
   exit();
 }
 
-use SimpleRO\WPBones\Support\ServiceProvider;
+use SimpleRewardOffer\WPBones\Support\ServiceProvider;
 
 /**
- * CliServiceProvider — registers `wp simple-ro make-admin` for bootstrapping /
+ * CliServiceProvider — registers `wp simplerewardoffer make-admin` for bootstrapping /
  * promoting staff accounts (there is no self-service path to admin/support).
  *
- *   wp simple-ro make-admin --email=you@example.com --password=secret1234 [--type=admin|support]
+ *   wp simplerewardoffer make-admin --email=you@example.com --password=secret1234 [--type=admin|support]
  */
 class CliServiceProvider extends ServiceProvider
 {
@@ -22,7 +22,7 @@ class CliServiceProvider extends ServiceProvider
       return;
     }
 
-    \WP_CLI::add_command('simple-ro make-admin', [$this, 'makeAdmin']);
+    \WP_CLI::add_command('simplerewardoffer make-admin', [$this, 'makeAdmin']);
   }
 
   /**
@@ -45,7 +45,7 @@ class CliServiceProvider extends ServiceProvider
       \WP_CLI::error('A valid --email is required.');
     }
 
-    $users = $wpdb->prefix . 'ro_users';
+    $users = $wpdb->prefix . 'simplerewardoffer_users';
     $existing = $wpdb->get_row($wpdb->prepare("SELECT id FROM {$users} WHERE email = %s LIMIT 1", $email));
     $now = gmdate('Y-m-d H:i:s');
 
